@@ -1,51 +1,41 @@
 const defaultData = {
+  person: {
+    displayName: "Carlos Chen",
+    shortName: "Carlos",
+    brandMark: "C",
+    username: "carloschen185",
+    role: "电脑爱好者 / 工具折腾者",
+    focus: "电脑 / 工程 / AI 工具",
+    status: "继续折腾中",
+    email: "carloschen185@163.com",
+    github: "https://github.com/carloschen185",
+    bilibili: "https://space.bilibili.com/3546372894624283",
+    telegram: "https://t.me/carloschen185",
+    heroIntro: "喜欢琢磨电脑、折腾有趣的小项目，也会把零散灵感慢慢收纳成可以分享的东西。",
+    aboutText:
+      "我是 Carlos Chen，一个热衷于琢磨电脑、尝试新工具、记录想法的人。这个主页会放我正在做的小项目、学习笔记，以及一些值得留下来的链接。",
+    contactText: "如果你想聊项目、工具、学习路线，或者只是想打个招呼，可以从这些地方找到我。",
+    footerText: "Made with a soft little mood.",
+  },
   site: {
-    title: "Carlos Chen 的小主页",
-    description: "Carlos Chen 的可爱风个人主页，收纳项目、灵感和联系方式。",
-    ogDescription: "一个更柔软、更可爱的个人主页。",
     themeColor: "#fff4cf",
     heroImage: "assets/hero-cute.jpg",
   },
-  profile: {
-    brandName: "Carlos Chen",
-    brandMark: "C",
-  },
   hero: {
     eyebrow: "Hello, welcome",
-    title: "这里是 Carlos 的小小主页。",
-    intro: "喜欢琢磨电脑、折腾有趣的小项目，也会把零散灵感慢慢收纳成可以分享的东西。",
     primaryButtonText: "看看作品",
     primaryButtonHref: "#projects",
     secondaryButtonText: "发封邮件",
-    secondaryButtonHref: "mailto:carloschen185@163.com",
     keywords: ["电脑", "创作", "学习", "一点点可爱"],
   },
-  about: {
-    eyebrow: "About",
-    title: "关于我",
-    text: "我是 Carlos Chen，一个热衷于琢磨电脑、尝试新工具、记录想法的人。这个主页会放我正在做的小项目、学习笔记，以及一些值得留下来的链接。",
-    facts: [
-      { label: "常用 ID", value: "carloschen185" },
-      { label: "关注方向", value: "电脑 / 工程 / AI 工具" },
-      { label: "状态", value: "继续折腾中" },
-    ],
-  },
-  collectionSection: {
-    eyebrow: "Collection",
-    title: "小收藏夹",
-  },
-  projectSection: {
-    eyebrow: "Works",
-    title: "最近想展示的东西",
-  },
-  contact: {
-    eyebrow: "Contact",
-    title: "来找我玩",
-    text: "如果你想聊项目、工具、学习路线，或者只是想打个招呼，可以从这些地方找到我。",
-  },
-  footer: {
-    text: "Made with a soft little mood.",
-    backToTopText: "回到顶部",
+  sections: {
+    collectionEyebrow: "Collection",
+    collectionTitle: "小收藏夹",
+    projectEyebrow: "Works",
+    projectTitle: "最近想展示的东西",
+    contactEyebrow: "Contact",
+    contactTitle: "来找我玩",
+    footerBackToTopText: "回到顶部",
   },
   collectionItems: [
     {
@@ -81,12 +71,6 @@ const defaultData = {
       tags: ["WIP", "Idea"],
     },
   ],
-  links: [
-    { label: "GitHub", href: "https://github.com/carloschen185" },
-    { label: "Email", href: "mailto:carloschen185@163.com" },
-    { label: "Bilibili", href: "https://space.bilibili.com/3546372894624283" },
-    { label: "Telegram", href: "https://t.me/carloschen185" },
-  ],
 };
 
 function escapeHtml(value) {
@@ -96,6 +80,114 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function firstGlyph(value) {
+  return Array.from(String(value || "C").trim())[0] || "C";
+}
+
+function mailto(email) {
+  return email ? `mailto:${email}` : "";
+}
+
+function mergeObject(base, value) {
+  return { ...base, ...(value && typeof value === "object" ? value : {}) };
+}
+
+function linksFromPerson(person) {
+  return [
+    { label: "GitHub", href: person.github },
+    { label: "Email", href: mailto(person.email) },
+    { label: "Bilibili", href: person.bilibili },
+    { label: "Telegram", href: person.telegram },
+  ].filter((link) => link.href);
+}
+
+function normalizeData(rawData) {
+  const data = mergeObject(defaultData, rawData);
+  const legacyProfile = rawData.profile ?? {};
+  const legacyHero = rawData.hero ?? {};
+  const legacyAbout = rawData.about ?? {};
+  const legacySite = rawData.site ?? {};
+  const legacyContact = rawData.contact ?? {};
+  const legacyFooter = rawData.footer ?? {};
+
+  const person = mergeObject(defaultData.person, {
+    displayName: legacyProfile.brandName,
+    shortName: legacyProfile.brandName,
+    brandMark: legacyProfile.brandMark,
+    heroIntro: legacyHero.intro,
+    aboutText: legacyAbout.text,
+    contactText: legacyContact.text,
+    footerText: legacyFooter.text,
+  });
+  Object.assign(person, rawData.person ?? {});
+
+  const site = mergeObject(defaultData.site, legacySite);
+  delete site.title;
+  delete site.description;
+  delete site.ogDescription;
+
+  const hero = mergeObject(defaultData.hero, legacyHero);
+  const sections = mergeObject(defaultData.sections, rawData.sections);
+
+  const displayName = person.displayName || "Carlos Chen";
+  const shortName = person.shortName || displayName;
+
+  return {
+    site: {
+      title: `${displayName} 的小主页`,
+      description: `${displayName} 的个人主页，收纳项目、灵感和联系方式。`,
+      ogDescription: `${displayName} 的可爱风个人主页。`,
+      themeColor: site.themeColor,
+      heroImage: site.heroImage,
+    },
+    profile: {
+      brandName: displayName,
+      brandMark: person.brandMark || firstGlyph(displayName),
+    },
+    hero: {
+      eyebrow: hero.eyebrow,
+      title: `这里是 ${shortName} 的小小主页。`,
+      intro: person.heroIntro,
+      primaryButtonText: hero.primaryButtonText,
+      primaryButtonHref: hero.primaryButtonHref,
+      secondaryButtonText: hero.secondaryButtonText,
+      secondaryButtonHref: mailto(person.email),
+      keywords: hero.keywords ?? [],
+    },
+    about: {
+      eyebrow: "About",
+      title: "关于我",
+      text: person.aboutText,
+      facts: [
+        { label: "常用 ID", value: person.username },
+        { label: "身份", value: person.role },
+        { label: "关注方向", value: person.focus },
+        { label: "状态", value: person.status },
+      ].filter((fact) => fact.value),
+    },
+    collectionSection: {
+      eyebrow: sections.collectionEyebrow,
+      title: sections.collectionTitle,
+    },
+    projectSection: {
+      eyebrow: sections.projectEyebrow,
+      title: sections.projectTitle,
+    },
+    contact: {
+      eyebrow: sections.contactEyebrow,
+      title: sections.contactTitle,
+      text: person.contactText,
+    },
+    footer: {
+      text: person.footerText,
+      backToTopText: sections.footerBackToTopText,
+    },
+    collectionItems: data.collectionItems ?? [],
+    projects: data.projects ?? [],
+    links: linksFromPerson(person),
+  };
 }
 
 function setText(selector, value) {
@@ -177,7 +269,9 @@ function renderLinks(links) {
     .join("");
 }
 
-function renderPage(data) {
+function renderPage(rawData) {
+  const data = normalizeData(rawData);
+
   document.title = data.site.title;
   setAttr("[data-site-description]", "content", data.site.description);
   setAttr("[data-theme-color]", "content", data.site.themeColor);

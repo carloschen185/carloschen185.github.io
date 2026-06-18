@@ -1,5 +1,6 @@
-#include <QApplication>
+#include <QAbstractItemView>
 #include <QAction>
+#include <QApplication>
 #include <QFile>
 #include <QFileDialog>
 #include <QFormLayout>
@@ -15,6 +16,7 @@
 #include <QPushButton>
 #include <QStatusBar>
 #include <QTableWidget>
+#include <QTabWidget>
 #include <QTextEdit>
 #include <QToolBar>
 #include <QVBoxLayout>
@@ -23,8 +25,8 @@
 class SiteInfoEditor : public QMainWindow {
 public:
   explicit SiteInfoEditor(QWidget *parent = nullptr) : QMainWindow(parent) {
-    setWindowTitle(QStringLiteral("个人主页信息编辑器"));
-    resize(1060, 760);
+    setWindowTitle(QStringLiteral("个人主页资料编辑器"));
+    resize(1080, 780);
     buildUi();
   }
 
@@ -42,7 +44,7 @@ public:
     }
 
     filePath_ = path;
-    data_ = doc.object();
+    data_ = normalize(doc.object());
     loadToUi();
     statusBarMessage(QStringLiteral("已打开：") + path);
   }
@@ -51,48 +53,36 @@ private:
   QString filePath_;
   QJsonObject data_;
 
-  QLineEdit *siteTitle_ = nullptr;
-  QLineEdit *siteDescription_ = nullptr;
-  QLineEdit *siteOgDescription_ = nullptr;
+  QLineEdit *displayName_ = nullptr;
+  QLineEdit *shortName_ = nullptr;
+  QLineEdit *brandMark_ = nullptr;
+  QLineEdit *username_ = nullptr;
+  QLineEdit *role_ = nullptr;
+  QLineEdit *focus_ = nullptr;
+  QLineEdit *status_ = nullptr;
+  QLineEdit *email_ = nullptr;
+  QLineEdit *github_ = nullptr;
+  QLineEdit *bilibili_ = nullptr;
+  QLineEdit *telegram_ = nullptr;
+  QTextEdit *heroIntro_ = nullptr;
+  QTextEdit *aboutText_ = nullptr;
+  QTextEdit *contactText_ = nullptr;
+  QLineEdit *footerText_ = nullptr;
+
   QLineEdit *themeColor_ = nullptr;
   QLineEdit *heroImage_ = nullptr;
-  QLineEdit *brandName_ = nullptr;
-  QLineEdit *brandMark_ = nullptr;
-
   QLineEdit *heroEyebrow_ = nullptr;
-  QLineEdit *heroTitle_ = nullptr;
-  QTextEdit *heroIntro_ = nullptr;
-  QLineEdit *primaryText_ = nullptr;
-  QLineEdit *primaryHref_ = nullptr;
-  QLineEdit *secondaryText_ = nullptr;
-  QLineEdit *secondaryHref_ = nullptr;
+  QLineEdit *primaryButtonText_ = nullptr;
+  QLineEdit *primaryButtonHref_ = nullptr;
+  QLineEdit *secondaryButtonText_ = nullptr;
   QTableWidget *keywordsTable_ = nullptr;
 
-  QLineEdit *aboutEyebrow_ = nullptr;
-  QLineEdit *aboutTitle_ = nullptr;
-  QTextEdit *aboutText_ = nullptr;
-  QTableWidget *factsTable_ = nullptr;
-
-  QLineEdit *collectionEyebrow_ = nullptr;
-  QLineEdit *collectionTitle_ = nullptr;
   QTableWidget *collectionTable_ = nullptr;
-
-  QLineEdit *projectEyebrow_ = nullptr;
-  QLineEdit *projectTitle_ = nullptr;
   QTableWidget *projectsTable_ = nullptr;
-
-  QLineEdit *contactEyebrow_ = nullptr;
-  QLineEdit *contactTitle_ = nullptr;
-  QTextEdit *contactText_ = nullptr;
-  QTableWidget *linksTable_ = nullptr;
-
-  QLineEdit *footerText_ = nullptr;
-  QLineEdit *footerTopText_ = nullptr;
 
   void buildUi() {
     auto *toolbar = addToolBar(QStringLiteral("文件"));
     toolbar->setMovable(false);
-
     auto *openAction = toolbar->addAction(QStringLiteral("打开 JSON"));
     auto *saveAction = toolbar->addAction(QStringLiteral("保存"));
     auto *saveAsAction = toolbar->addAction(QStringLiteral("另存为"));
@@ -102,87 +92,88 @@ private:
     connect(saveAsAction, &QAction::triggered, this, [this] { saveFile(true); });
 
     auto *tabs = new QTabWidget(this);
-    tabs->addTab(buildBasicTab(), QStringLiteral("基础信息"));
-    tabs->addTab(buildHeroTab(), QStringLiteral("首页首屏"));
-    tabs->addTab(buildAboutTab(), QStringLiteral("关于我"));
+    tabs->addTab(buildPersonTab(), QStringLiteral("个人资料"));
+    tabs->addTab(buildHomeTab(), QStringLiteral("首页设置"));
     tabs->addTab(buildCollectionTab(), QStringLiteral("收藏夹"));
     tabs->addTab(buildProjectsTab(), QStringLiteral("想展示的东西"));
-    tabs->addTab(buildContactTab(), QStringLiteral("联系与页脚"));
     setCentralWidget(tabs);
   }
 
-  QWidget *buildBasicTab() {
+  QWidget *buildPersonTab() {
     auto *page = new QWidget;
-    auto *form = new QFormLayout(page);
-    siteTitle_ = line();
-    siteDescription_ = line();
-    siteOgDescription_ = line();
+    auto *layout = new QVBoxLayout(page);
+    auto *form = new QFormLayout;
+
+    displayName_ = line();
+    shortName_ = line();
+    brandMark_ = line();
+    username_ = line();
+    role_ = line();
+    focus_ = line();
+    status_ = line();
+    email_ = line();
+    github_ = line();
+    bilibili_ = line();
+    telegram_ = line();
+    heroIntro_ = text(80);
+    aboutText_ = text(120);
+    contactText_ = text(80);
+    footerText_ = line();
+
+    form->addRow(QStringLiteral("显示名称"), displayName_);
+    form->addRow(QStringLiteral("短名称"), shortName_);
+    form->addRow(QStringLiteral("导航标记"), brandMark_);
+    form->addRow(QStringLiteral("常用 ID"), username_);
+    form->addRow(QStringLiteral("身份"), role_);
+    form->addRow(QStringLiteral("关注方向"), focus_);
+    form->addRow(QStringLiteral("状态"), status_);
+    form->addRow(QStringLiteral("邮箱"), email_);
+    form->addRow(QStringLiteral("GitHub"), github_);
+    form->addRow(QStringLiteral("Bilibili"), bilibili_);
+    form->addRow(QStringLiteral("Telegram"), telegram_);
+    form->addRow(QStringLiteral("首屏简介"), heroIntro_);
+    form->addRow(QStringLiteral("关于我介绍"), aboutText_);
+    form->addRow(QStringLiteral("联系区说明"), contactText_);
+    form->addRow(QStringLiteral("页脚文字"), footerText_);
+
+    layout->addWidget(hint(QStringLiteral("这里只编辑一份个人资料。保存后，网页标题、导航、首屏、关于我、联系方式会自动同步使用这些信息。")));
+    layout->addLayout(form);
+    return page;
+  }
+
+  QWidget *buildHomeTab() {
+    auto *page = new QWidget;
+    auto *layout = new QVBoxLayout(page);
+    auto *form = new QFormLayout;
+
     themeColor_ = line();
     heroImage_ = line();
-    brandName_ = line();
-    brandMark_ = line();
-    form->addRow(QStringLiteral("网页标题"), siteTitle_);
-    form->addRow(QStringLiteral("网页描述"), siteDescription_);
-    form->addRow(QStringLiteral("分享描述"), siteOgDescription_);
+    heroEyebrow_ = line();
+    primaryButtonText_ = line();
+    primaryButtonHref_ = line();
+    secondaryButtonText_ = line();
+
     form->addRow(QStringLiteral("主题色"), themeColor_);
     form->addRow(QStringLiteral("首屏图片路径"), heroImage_);
-    form->addRow(QStringLiteral("导航名字"), brandName_);
-    form->addRow(QStringLiteral("导航标记"), brandMark_);
-    return page;
-  }
+    form->addRow(QStringLiteral("首屏小标题"), heroEyebrow_);
+    form->addRow(QStringLiteral("主按钮文字"), primaryButtonText_);
+    form->addRow(QStringLiteral("主按钮链接"), primaryButtonHref_);
+    form->addRow(QStringLiteral("邮件按钮文字"), secondaryButtonText_);
 
-  QWidget *buildHeroTab() {
-    auto *page = new QWidget;
-    auto *layout = new QVBoxLayout(page);
-    auto *form = new QFormLayout;
-    heroEyebrow_ = line();
-    heroTitle_ = line();
-    heroIntro_ = text();
-    primaryText_ = line();
-    primaryHref_ = line();
-    secondaryText_ = line();
-    secondaryHref_ = line();
-    form->addRow(QStringLiteral("小标题"), heroEyebrow_);
-    form->addRow(QStringLiteral("主标题"), heroTitle_);
-    form->addRow(QStringLiteral("简介"), heroIntro_);
-    form->addRow(QStringLiteral("主按钮文字"), primaryText_);
-    form->addRow(QStringLiteral("主按钮链接"), primaryHref_);
-    form->addRow(QStringLiteral("副按钮文字"), secondaryText_);
-    form->addRow(QStringLiteral("副按钮链接"), secondaryHref_);
-    layout->addLayout(form);
     keywordsTable_ = table({QStringLiteral("关键词")});
-    layout->addWidget(label(QStringLiteral("关键词")));
-    layout->addWidget(withButtons(keywordsTable_));
-    return page;
-  }
 
-  QWidget *buildAboutTab() {
-    auto *page = new QWidget;
-    auto *layout = new QVBoxLayout(page);
-    auto *form = new QFormLayout;
-    aboutEyebrow_ = line();
-    aboutTitle_ = line();
-    aboutText_ = text();
-    form->addRow(QStringLiteral("小标题"), aboutEyebrow_);
-    form->addRow(QStringLiteral("标题"), aboutTitle_);
-    form->addRow(QStringLiteral("介绍文字"), aboutText_);
+    layout->addWidget(hint(QStringLiteral("这些是展示设置；个人身份信息仍然从“个人资料”自动生成。")));
     layout->addLayout(form);
-    factsTable_ = table({QStringLiteral("标签"), QStringLiteral("内容")});
-    layout->addWidget(label(QStringLiteral("个人信息卡片")));
-    layout->addWidget(withButtons(factsTable_));
+    layout->addWidget(label(QStringLiteral("首页关键词")));
+    layout->addWidget(withButtons(keywordsTable_));
     return page;
   }
 
   QWidget *buildCollectionTab() {
     auto *page = new QWidget;
     auto *layout = new QVBoxLayout(page);
-    auto *form = new QFormLayout;
-    collectionEyebrow_ = line();
-    collectionTitle_ = line();
-    form->addRow(QStringLiteral("区域小标题"), collectionEyebrow_);
-    form->addRow(QStringLiteral("区域标题"), collectionTitle_);
-    layout->addLayout(form);
     collectionTable_ = table({QStringLiteral("图标/编号"), QStringLiteral("标题"), QStringLiteral("说明")});
+    layout->addWidget(hint(QStringLiteral("这里可以添加、删除和调整收藏夹卡片。")));
     layout->addWidget(withButtons(collectionTable_));
     return page;
   }
@@ -190,35 +181,9 @@ private:
   QWidget *buildProjectsTab() {
     auto *page = new QWidget;
     auto *layout = new QVBoxLayout(page);
-    auto *form = new QFormLayout;
-    projectEyebrow_ = line();
-    projectTitle_ = line();
-    form->addRow(QStringLiteral("区域小标题"), projectEyebrow_);
-    form->addRow(QStringLiteral("区域标题"), projectTitle_);
-    layout->addLayout(form);
     projectsTable_ = table({QStringLiteral("标题"), QStringLiteral("说明"), QStringLiteral("标签，用英文逗号分隔")});
+    layout->addWidget(hint(QStringLiteral("这里可以添加、删除和调整“想展示的东西”。")));
     layout->addWidget(withButtons(projectsTable_));
-    return page;
-  }
-
-  QWidget *buildContactTab() {
-    auto *page = new QWidget;
-    auto *layout = new QVBoxLayout(page);
-    auto *form = new QFormLayout;
-    contactEyebrow_ = line();
-    contactTitle_ = line();
-    contactText_ = text();
-    footerText_ = line();
-    footerTopText_ = line();
-    form->addRow(QStringLiteral("联系区小标题"), contactEyebrow_);
-    form->addRow(QStringLiteral("联系区标题"), contactTitle_);
-    form->addRow(QStringLiteral("联系区说明"), contactText_);
-    form->addRow(QStringLiteral("页脚文字"), footerText_);
-    form->addRow(QStringLiteral("返回顶部文字"), footerTopText_);
-    layout->addLayout(form);
-    linksTable_ = table({QStringLiteral("显示文字"), QStringLiteral("链接")});
-    layout->addWidget(label(QStringLiteral("联系方式")));
-    layout->addWidget(withButtons(linksTable_));
     return page;
   }
 
@@ -228,15 +193,22 @@ private:
     return widget;
   }
 
-  QTextEdit *text() const {
+  QTextEdit *text(int height) const {
     auto *widget = new QTextEdit;
-    widget->setMinimumHeight(90);
+    widget->setMinimumHeight(height);
     return widget;
   }
 
   QLabel *label(const QString &value) const {
     auto *widget = new QLabel(value);
     widget->setStyleSheet(QStringLiteral("font-weight: 700; margin-top: 8px;"));
+    return widget;
+  }
+
+  QLabel *hint(const QString &value) const {
+    auto *widget = new QLabel(value);
+    widget->setWordWrap(true);
+    widget->setStyleSheet(QStringLiteral("padding: 10px; border-radius: 8px; background: #fff4cf; color: #59424b;"));
     return widget;
   }
 
@@ -296,6 +268,20 @@ private:
     return selected.isEmpty() ? -1 : selected.first().row();
   }
 
+  static QString itemText(QTableWidget *tableWidget, int row, int column) {
+    const auto *item = tableWidget->item(row, column);
+    return item ? item->text() : QString();
+  }
+
+  static void setItemText(QTableWidget *tableWidget, int row, int column, const QString &value) {
+    auto *item = tableWidget->item(row, column);
+    if (!item) {
+      item = new QTableWidgetItem;
+      tableWidget->setItem(row, column, item);
+    }
+    item->setText(value);
+  }
+
   static void moveRow(QTableWidget *tableWidget, int direction) {
     const int row = currentRow(tableWidget);
     const int target = row + direction;
@@ -315,20 +301,6 @@ private:
       setItemText(tableWidget, target, column, rowValues.value(column));
     }
     tableWidget->selectRow(target);
-  }
-
-  static QString itemText(QTableWidget *tableWidget, int row, int column) {
-    const auto *item = tableWidget->item(row, column);
-    return item ? item->text() : QString();
-  }
-
-  static void setItemText(QTableWidget *tableWidget, int row, int column, const QString &value) {
-    auto *item = tableWidget->item(row, column);
-    if (!item) {
-      item = new QTableWidgetItem;
-      tableWidget->setItem(row, column, item);
-    }
-    item->setText(value);
   }
 
   void chooseAndOpen() {
@@ -364,93 +336,113 @@ private:
     statusBar()->showMessage(message, 5000);
   }
 
+  QJsonObject normalize(const QJsonObject &input) const {
+    QJsonObject normalized = input;
+
+    if (!normalized.contains(QStringLiteral("person"))) {
+      QJsonObject person;
+      const auto profile = input.value(QStringLiteral("profile")).toObject();
+      const auto hero = input.value(QStringLiteral("hero")).toObject();
+      const auto about = input.value(QStringLiteral("about")).toObject();
+      const auto contact = input.value(QStringLiteral("contact")).toObject();
+      const auto footer = input.value(QStringLiteral("footer")).toObject();
+      person[QStringLiteral("displayName")] = profile.value(QStringLiteral("brandName")).toString(QStringLiteral("Carlos Chen"));
+      person[QStringLiteral("shortName")] = profile.value(QStringLiteral("brandName")).toString(QStringLiteral("Carlos"));
+      person[QStringLiteral("brandMark")] = profile.value(QStringLiteral("brandMark")).toString(QStringLiteral("C"));
+      person[QStringLiteral("username")] = QStringLiteral("carloschen185");
+      person[QStringLiteral("role")] = QStringLiteral("电脑爱好者 / 工具折腾者");
+      person[QStringLiteral("focus")] = QStringLiteral("电脑 / 工程 / AI 工具");
+      person[QStringLiteral("status")] = QStringLiteral("继续折腾中");
+      person[QStringLiteral("email")] = QStringLiteral("carloschen185@163.com");
+      person[QStringLiteral("github")] = QStringLiteral("https://github.com/carloschen185");
+      person[QStringLiteral("bilibili")] = QStringLiteral("https://space.bilibili.com/3546372894624283");
+      person[QStringLiteral("telegram")] = QStringLiteral("https://t.me/carloschen185");
+      person[QStringLiteral("heroIntro")] = hero.value(QStringLiteral("intro")).toString();
+      person[QStringLiteral("aboutText")] = about.value(QStringLiteral("text")).toString();
+      person[QStringLiteral("contactText")] = contact.value(QStringLiteral("text")).toString();
+      person[QStringLiteral("footerText")] = footer.value(QStringLiteral("text")).toString(QStringLiteral("Made with a soft little mood."));
+      normalized[QStringLiteral("person")] = person;
+    }
+
+    if (!normalized.contains(QStringLiteral("sections"))) {
+      normalized[QStringLiteral("sections")] = QJsonObject{
+          {QStringLiteral("collectionEyebrow"), QStringLiteral("Collection")},
+          {QStringLiteral("collectionTitle"), QStringLiteral("小收藏夹")},
+          {QStringLiteral("projectEyebrow"), QStringLiteral("Works")},
+          {QStringLiteral("projectTitle"), QStringLiteral("最近想展示的东西")},
+          {QStringLiteral("contactEyebrow"), QStringLiteral("Contact")},
+          {QStringLiteral("contactTitle"), QStringLiteral("来找我玩")},
+          {QStringLiteral("footerBackToTopText"), QStringLiteral("回到顶部")}};
+    }
+
+    return normalized;
+  }
+
   void loadToUi() {
+    const auto person = data_.value(QStringLiteral("person")).toObject();
     const auto site = data_.value(QStringLiteral("site")).toObject();
-    const auto profile = data_.value(QStringLiteral("profile")).toObject();
     const auto hero = data_.value(QStringLiteral("hero")).toObject();
-    const auto about = data_.value(QStringLiteral("about")).toObject();
-    const auto collectionSection = data_.value(QStringLiteral("collectionSection")).toObject();
-    const auto projectSection = data_.value(QStringLiteral("projectSection")).toObject();
-    const auto contact = data_.value(QStringLiteral("contact")).toObject();
-    const auto footer = data_.value(QStringLiteral("footer")).toObject();
 
-    siteTitle_->setText(site.value(QStringLiteral("title")).toString());
-    siteDescription_->setText(site.value(QStringLiteral("description")).toString());
-    siteOgDescription_->setText(site.value(QStringLiteral("ogDescription")).toString());
-    themeColor_->setText(site.value(QStringLiteral("themeColor")).toString());
-    heroImage_->setText(site.value(QStringLiteral("heroImage")).toString());
-    brandName_->setText(profile.value(QStringLiteral("brandName")).toString());
-    brandMark_->setText(profile.value(QStringLiteral("brandMark")).toString());
+    displayName_->setText(person.value(QStringLiteral("displayName")).toString());
+    shortName_->setText(person.value(QStringLiteral("shortName")).toString());
+    brandMark_->setText(person.value(QStringLiteral("brandMark")).toString());
+    username_->setText(person.value(QStringLiteral("username")).toString());
+    role_->setText(person.value(QStringLiteral("role")).toString());
+    focus_->setText(person.value(QStringLiteral("focus")).toString());
+    status_->setText(person.value(QStringLiteral("status")).toString());
+    email_->setText(person.value(QStringLiteral("email")).toString());
+    github_->setText(person.value(QStringLiteral("github")).toString());
+    bilibili_->setText(person.value(QStringLiteral("bilibili")).toString());
+    telegram_->setText(person.value(QStringLiteral("telegram")).toString());
+    heroIntro_->setPlainText(person.value(QStringLiteral("heroIntro")).toString());
+    aboutText_->setPlainText(person.value(QStringLiteral("aboutText")).toString());
+    contactText_->setPlainText(person.value(QStringLiteral("contactText")).toString());
+    footerText_->setText(person.value(QStringLiteral("footerText")).toString());
 
-    heroEyebrow_->setText(hero.value(QStringLiteral("eyebrow")).toString());
-    heroTitle_->setText(hero.value(QStringLiteral("title")).toString());
-    heroIntro_->setPlainText(hero.value(QStringLiteral("intro")).toString());
-    primaryText_->setText(hero.value(QStringLiteral("primaryButtonText")).toString());
-    primaryHref_->setText(hero.value(QStringLiteral("primaryButtonHref")).toString());
-    secondaryText_->setText(hero.value(QStringLiteral("secondaryButtonText")).toString());
-    secondaryHref_->setText(hero.value(QStringLiteral("secondaryButtonHref")).toString());
+    themeColor_->setText(site.value(QStringLiteral("themeColor")).toString(QStringLiteral("#fff4cf")));
+    heroImage_->setText(site.value(QStringLiteral("heroImage")).toString(QStringLiteral("assets/hero-cute.jpg")));
+    heroEyebrow_->setText(hero.value(QStringLiteral("eyebrow")).toString(QStringLiteral("Hello, welcome")));
+    primaryButtonText_->setText(hero.value(QStringLiteral("primaryButtonText")).toString(QStringLiteral("看看作品")));
+    primaryButtonHref_->setText(hero.value(QStringLiteral("primaryButtonHref")).toString(QStringLiteral("#projects")));
+    secondaryButtonText_->setText(hero.value(QStringLiteral("secondaryButtonText")).toString(QStringLiteral("发封邮件")));
     fillStringTable(keywordsTable_, hero.value(QStringLiteral("keywords")).toArray());
 
-    aboutEyebrow_->setText(about.value(QStringLiteral("eyebrow")).toString());
-    aboutTitle_->setText(about.value(QStringLiteral("title")).toString());
-    aboutText_->setPlainText(about.value(QStringLiteral("text")).toString());
-    fillObjectTable(factsTable_, about.value(QStringLiteral("facts")).toArray(), {QStringLiteral("label"), QStringLiteral("value")});
-
-    collectionEyebrow_->setText(collectionSection.value(QStringLiteral("eyebrow")).toString());
-    collectionTitle_->setText(collectionSection.value(QStringLiteral("title")).toString());
     fillObjectTable(collectionTable_, data_.value(QStringLiteral("collectionItems")).toArray(),
                     {QStringLiteral("icon"), QStringLiteral("title"), QStringLiteral("text")});
-
-    projectEyebrow_->setText(projectSection.value(QStringLiteral("eyebrow")).toString());
-    projectTitle_->setText(projectSection.value(QStringLiteral("title")).toString());
     fillProjectsTable(data_.value(QStringLiteral("projects")).toArray());
-
-    contactEyebrow_->setText(contact.value(QStringLiteral("eyebrow")).toString());
-    contactTitle_->setText(contact.value(QStringLiteral("title")).toString());
-    contactText_->setPlainText(contact.value(QStringLiteral("text")).toString());
-    footerText_->setText(footer.value(QStringLiteral("text")).toString());
-    footerTopText_->setText(footer.value(QStringLiteral("backToTopText")).toString());
-    fillObjectTable(linksTable_, data_.value(QStringLiteral("links")).toArray(), {QStringLiteral("label"), QStringLiteral("href")});
   }
 
   QJsonObject collectFromUi() const {
     QJsonObject root;
-    root[QStringLiteral("site")] = QJsonObject{
-        {QStringLiteral("title"), siteTitle_->text()},
-        {QStringLiteral("description"), siteDescription_->text()},
-        {QStringLiteral("ogDescription"), siteOgDescription_->text()},
-        {QStringLiteral("themeColor"), themeColor_->text()},
-        {QStringLiteral("heroImage"), heroImage_->text()}};
-    root[QStringLiteral("profile")] =
-        QJsonObject{{QStringLiteral("brandName"), brandName_->text()}, {QStringLiteral("brandMark"), brandMark_->text()}};
+    root[QStringLiteral("person")] = QJsonObject{
+        {QStringLiteral("displayName"), displayName_->text()},
+        {QStringLiteral("shortName"), shortName_->text()},
+        {QStringLiteral("brandMark"), brandMark_->text()},
+        {QStringLiteral("username"), username_->text()},
+        {QStringLiteral("role"), role_->text()},
+        {QStringLiteral("focus"), focus_->text()},
+        {QStringLiteral("status"), status_->text()},
+        {QStringLiteral("email"), email_->text()},
+        {QStringLiteral("github"), github_->text()},
+        {QStringLiteral("bilibili"), bilibili_->text()},
+        {QStringLiteral("telegram"), telegram_->text()},
+        {QStringLiteral("heroIntro"), heroIntro_->toPlainText()},
+        {QStringLiteral("aboutText"), aboutText_->toPlainText()},
+        {QStringLiteral("contactText"), contactText_->toPlainText()},
+        {QStringLiteral("footerText"), footerText_->text()}};
+
+    root[QStringLiteral("site")] =
+        QJsonObject{{QStringLiteral("themeColor"), themeColor_->text()}, {QStringLiteral("heroImage"), heroImage_->text()}};
     root[QStringLiteral("hero")] = QJsonObject{
         {QStringLiteral("eyebrow"), heroEyebrow_->text()},
-        {QStringLiteral("title"), heroTitle_->text()},
-        {QStringLiteral("intro"), heroIntro_->toPlainText()},
-        {QStringLiteral("primaryButtonText"), primaryText_->text()},
-        {QStringLiteral("primaryButtonHref"), primaryHref_->text()},
-        {QStringLiteral("secondaryButtonText"), secondaryText_->text()},
-        {QStringLiteral("secondaryButtonHref"), secondaryHref_->text()},
+        {QStringLiteral("primaryButtonText"), primaryButtonText_->text()},
+        {QStringLiteral("primaryButtonHref"), primaryButtonHref_->text()},
+        {QStringLiteral("secondaryButtonText"), secondaryButtonText_->text()},
         {QStringLiteral("keywords"), collectStringTable(keywordsTable_)}};
-    root[QStringLiteral("about")] = QJsonObject{
-        {QStringLiteral("eyebrow"), aboutEyebrow_->text()},
-        {QStringLiteral("title"), aboutTitle_->text()},
-        {QStringLiteral("text"), aboutText_->toPlainText()},
-        {QStringLiteral("facts"), collectObjectTable(factsTable_, {QStringLiteral("label"), QStringLiteral("value")})}};
-    root[QStringLiteral("collectionSection")] =
-        QJsonObject{{QStringLiteral("eyebrow"), collectionEyebrow_->text()}, {QStringLiteral("title"), collectionTitle_->text()}};
-    root[QStringLiteral("projectSection")] =
-        QJsonObject{{QStringLiteral("eyebrow"), projectEyebrow_->text()}, {QStringLiteral("title"), projectTitle_->text()}};
-    root[QStringLiteral("contact")] = QJsonObject{
-        {QStringLiteral("eyebrow"), contactEyebrow_->text()},
-        {QStringLiteral("title"), contactTitle_->text()},
-        {QStringLiteral("text"), contactText_->toPlainText()}};
-    root[QStringLiteral("footer")] =
-        QJsonObject{{QStringLiteral("text"), footerText_->text()}, {QStringLiteral("backToTopText"), footerTopText_->text()}};
+    root[QStringLiteral("sections")] = data_.value(QStringLiteral("sections")).toObject();
     root[QStringLiteral("collectionItems")] =
         collectObjectTable(collectionTable_, {QStringLiteral("icon"), QStringLiteral("title"), QStringLiteral("text")});
     root[QStringLiteral("projects")] = collectProjectsTable();
-    root[QStringLiteral("links")] = collectObjectTable(linksTable_, {QStringLiteral("label"), QStringLiteral("href")});
     return root;
   }
 
@@ -463,6 +455,17 @@ private:
     }
   }
 
+  static QJsonArray collectStringTable(QTableWidget *tableWidget) {
+    QJsonArray values;
+    for (int row = 0; row < tableWidget->rowCount(); ++row) {
+      const QString value = itemText(tableWidget, row, 0).trimmed();
+      if (!value.isEmpty()) {
+        values.append(value);
+      }
+    }
+    return values;
+  }
+
   static void fillObjectTable(QTableWidget *tableWidget, const QJsonArray &values, const QStringList &keys) {
     tableWidget->setRowCount(0);
     for (const auto &value : values) {
@@ -473,33 +476,6 @@ private:
         setItemText(tableWidget, row, column, object.value(keys.at(column)).toString());
       }
     }
-  }
-
-  void fillProjectsTable(const QJsonArray &values) {
-    projectsTable_->setRowCount(0);
-    for (const auto &value : values) {
-      const auto object = value.toObject();
-      QStringList tags;
-      for (const auto &tag : object.value(QStringLiteral("tags")).toArray()) {
-        tags << tag.toString();
-      }
-      const int row = projectsTable_->rowCount();
-      projectsTable_->insertRow(row);
-      setItemText(projectsTable_, row, 0, object.value(QStringLiteral("title")).toString());
-      setItemText(projectsTable_, row, 1, object.value(QStringLiteral("text")).toString());
-      setItemText(projectsTable_, row, 2, tags.join(QStringLiteral(", ")));
-    }
-  }
-
-  static QJsonArray collectStringTable(QTableWidget *tableWidget) {
-    QJsonArray values;
-    for (int row = 0; row < tableWidget->rowCount(); ++row) {
-      const QString value = itemText(tableWidget, row, 0).trimmed();
-      if (!value.isEmpty()) {
-        values.append(value);
-      }
-    }
-    return values;
   }
 
   static QJsonArray collectObjectTable(QTableWidget *tableWidget, const QStringList &keys) {
@@ -517,6 +493,22 @@ private:
       }
     }
     return values;
+  }
+
+  void fillProjectsTable(const QJsonArray &values) {
+    projectsTable_->setRowCount(0);
+    for (const auto &value : values) {
+      const auto object = value.toObject();
+      QStringList tags;
+      for (const auto &tag : object.value(QStringLiteral("tags")).toArray()) {
+        tags << tag.toString();
+      }
+      const int row = projectsTable_->rowCount();
+      projectsTable_->insertRow(row);
+      setItemText(projectsTable_, row, 0, object.value(QStringLiteral("title")).toString());
+      setItemText(projectsTable_, row, 1, object.value(QStringLiteral("text")).toString());
+      setItemText(projectsTable_, row, 2, tags.join(QStringLiteral(", ")));
+    }
   }
 
   QJsonArray collectProjectsTable() const {
