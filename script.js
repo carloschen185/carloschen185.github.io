@@ -1,76 +1,57 @@
-const profile = {
-  name: "你的名字",
-  kicker: "技术 / 产品 / 创作",
-  headline: "你好，我正在构建自己的长期作品。",
-  intro: "这里会记录我正在做的项目、关注的问题，以及一些值得持续打磨的想法。",
-  about:
-    "我喜欢把复杂问题拆成清楚的系统，也喜欢把抽象想法做成可以使用的东西。这个主页会随着我的经历、作品和兴趣一起更新。",
-  location: "待补充",
-  role: "待补充",
-  focus: "产品、工程、写作",
-  contactText: "如果你对我的项目、合作或某个想法感兴趣，可以通过下面的方式联系我。",
-  footer: "持续更新中。",
-};
-
-const focusItems = [
+const collectionItems = [
   {
-    title: "把想法做成产品",
-    text: "从问题定义到交互细节，关注真实使用场景中的清晰、效率和体验。",
+    icon: "01",
+    title: "电脑折腾区",
+    text: "把系统、工具、硬件和各种奇怪问题整理成可复用的小经验。",
   },
   {
-    title: "用工程解决复杂问题",
-    text: "喜欢可靠的系统、简洁的架构，以及能经得起长期维护的实现方式。",
+    icon: "02",
+    title: "学习便签",
+    text: "记录最近看过、试过、想继续研究的技术点和 AI 工具。",
   },
   {
-    title: "记录与表达",
-    text: "通过写作沉淀理解，把模糊的经验整理成可以复用的判断。",
+    icon: "03",
+    title: "灵感抽屉",
+    text: "收纳一些暂时还没长成项目的想法，先让它们有地方住下。",
   },
 ];
 
 const projects = [
   {
-    title: "项目一",
-    text: "一句话介绍这个项目解决了什么问题、你的角色是什么，以及它现在的状态。",
-    tags: ["Product", "Engineering"],
+    title: "GitHub 小仓库",
+    text: "这里会持续放一些代码实验、脚本工具和正在打磨的小项目。",
+    tags: ["GitHub", "Code"],
   },
   {
-    title: "项目二",
-    text: "可以放一个正在进行中的作品、开源项目、课程、工具或长期研究主题。",
-    tags: ["Writing", "Research"],
+    title: "内容与分享",
+    text: "把电脑折腾、学习过程和踩坑记录做成更容易看懂的内容。",
+    tags: ["Bilibili", "Notes"],
   },
   {
-    title: "项目三",
-    text: "也可以放你希望别人快速了解的代表性经历或成果。",
-    tags: ["Portfolio", "Story"],
+    title: "下一件作品",
+    text: "还在酝酿中。等它稍微成形，就把它搬到这个位置。",
+    tags: ["WIP", "Idea"],
   },
 ];
 
 const links = [
-  { label: "Email", href: "" },
-  { label: "GitHub", href: "" },
-  { label: "Blog", href: "" },
+  { label: "GitHub", href: "https://github.com/carloschen185" },
+  { label: "Email", href: "mailto:carloschen185@163.com" },
+  { label: "Bilibili", href: "https://space.bilibili.com/3546372894624283" },
+  { label: "Telegram", href: "https://t.me/carloschen185" },
 ];
 
-function setProfileText() {
-  document.querySelectorAll("[data-profile]").forEach((node) => {
-    const key = node.dataset.profile;
-    if (profile[key]) {
-      node.textContent = profile[key];
-    }
-  });
-
-  document.title = `${profile.name} | 个人主页`;
-}
-
-function renderFocus() {
-  const container = document.querySelector('[data-render="focus"]');
-  container.innerHTML = focusItems
+function renderCollection() {
+  const container = document.querySelector('[data-render="collection"]');
+  container.innerHTML = collectionItems
     .map(
-      (item, index) => `
-        <article class="focus-card">
-          <span class="marker" aria-hidden="true">${index + 1}</span>
-          <h3>${item.title}</h3>
-          <p>${item.text}</p>
+      (item) => `
+        <article class="collection-card">
+          <span class="collection-icon" aria-hidden="true">${item.icon}</span>
+          <div>
+            <h3>${item.title}</h3>
+            <p>${item.text}</p>
+          </div>
         </article>
       `,
     )
@@ -87,7 +68,7 @@ function renderProjects() {
             <h3>${project.title}</h3>
             <p>${project.text}</p>
           </div>
-          <div class="project-meta">
+          <div class="project-tags">
             ${project.tags.map((tag) => `<span>${tag}</span>`).join("")}
           </div>
         </article>
@@ -98,17 +79,11 @@ function renderProjects() {
 
 function renderLinks() {
   const container = document.querySelector('[data-render="links"]');
-  const activeLinks = links.filter((link) => link.href);
-  container.innerHTML = activeLinks
+  container.innerHTML = links
     .map((link) => `<a href="${link.href}" target="_blank" rel="noreferrer">${link.label}</a>`)
     .join("");
-
-  if (!activeLinks.length) {
-    container.innerHTML = '<span class="contact-empty">联系方式待补充</span>';
-  }
 }
 
-setProfileText();
-renderFocus();
+renderCollection();
 renderProjects();
 renderLinks();

@@ -3,51 +3,51 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>个人主页</title>
-    <meta
-      name="description"
-      content="一个关于创作、技术与长期作品的个人主页。"
-    >
-    <meta name="theme-color" content="#f6f1e8">
+    <title>Carlos Chen 的小主页</title>
+    <meta name="description" content="Carlos Chen 的可爱风个人主页，收纳项目、灵感和联系方式。">
+    <meta name="theme-color" content="#fff4cf">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="个人主页">
-    <meta
-      property="og:description"
-      content="一个关于创作、技术与长期作品的个人主页。"
-    >
-    <meta property="og:image" content="https://avatars.githubusercontent.com/u/178721513?v=4">
+    <meta property="og:title" content="Carlos Chen 的小主页">
+    <meta property="og:description" content="一个更柔软、更可爱的个人主页。">
+    <meta property="og:image" content="assets/hero-cute.jpg">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <header class="site-header" aria-label="主导航">
-      <a class="brand" href="#top" data-profile="name">个人主页</a>
+      <a class="brand" href="#top" aria-label="回到首页">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        <span>Carlos Chen</span>
+      </a>
       <nav class="nav-links" aria-label="页面导航">
         <a href="#about">关于</a>
-        <a href="#work">方向</a>
-        <a href="#projects">项目</a>
+        <a href="#collection">收藏夹</a>
+        <a href="#projects">作品</a>
         <a href="#contact">联系</a>
       </nav>
     </header>
 
     <main id="top">
       <section class="hero" aria-labelledby="hero-title">
-        <img
-          class="hero-image"
-          src="https://avatars.githubusercontent.com/u/178721513?v=4"
-          alt="GitHub 头像"
-        >
-        <div class="hero-overlay" aria-hidden="true"></div>
-        <div class="hero-content">
-          <p class="eyebrow" data-profile="kicker">技术 / 产品 / 创作</p>
-          <h1 id="hero-title" data-profile="headline">你好，我正在构建自己的长期作品。</h1>
-          <p class="hero-copy" data-profile="intro">
-            这里会记录我正在做的项目、关注的问题，以及一些值得持续打磨的想法。
+        <div class="hero-copy">
+          <p class="eyebrow">Hello, welcome</p>
+          <h1 id="hero-title">这里是 Carlos 的小小主页。</h1>
+          <p class="intro">
+            喜欢琢磨电脑、折腾有趣的小项目，也会把零散灵感慢慢收纳成可以分享的东西。
           </p>
           <div class="hero-actions" aria-label="主要操作">
-            <a class="button primary" href="#projects">查看项目</a>
-            <a class="button secondary" href="#contact">联系我</a>
+            <a class="button primary" href="#projects">看看作品</a>
+            <a class="button secondary" href="mailto:carloschen185@163.com">发封邮件</a>
           </div>
+          <ul class="mood-list" aria-label="主页关键词">
+            <li>电脑</li>
+            <li>创作</li>
+            <li>学习</li>
+            <li>一点点可爱</li>
+          </ul>
         </div>
+        <figure class="hero-art">
+          <img src="assets/hero-cute.jpg" alt="可爱的桌面插画">
+        </figure>
       </section>
 
       <section class="section about-section" id="about" aria-labelledby="about-title">
@@ -56,39 +56,38 @@
           <h2 id="about-title">关于我</h2>
         </div>
         <div class="about-layout">
-          <p class="lead" data-profile="about">
-            我喜欢把复杂问题拆成清楚的系统，也喜欢把抽象想法做成可以使用的东西。
-            这个主页会随着我的经历、作品和兴趣一起更新。
+          <p class="lead">
+            我是 Carlos Chen，一个热衷于琢磨电脑、尝试新工具、记录想法的人。这个主页会放我正在做的小项目、学习笔记，以及一些值得留下来的链接。
           </p>
-          <dl class="quick-facts" aria-label="个人信息摘要">
+          <dl class="quick-facts" aria-label="个人信息">
             <div>
-              <dt>位置</dt>
-              <dd data-profile="location">待补充</dd>
+              <dt>常用 ID</dt>
+              <dd>carloschen185</dd>
             </div>
             <div>
-              <dt>身份</dt>
-              <dd data-profile="role">待补充</dd>
+              <dt>关注方向</dt>
+              <dd>电脑 / 工程 / AI 工具</dd>
             </div>
             <div>
-              <dt>关注</dt>
-              <dd data-profile="focus">产品、工程、写作</dd>
+              <dt>状态</dt>
+              <dd>继续折腾中</dd>
             </div>
           </dl>
         </div>
       </section>
 
-      <section class="section work-section" id="work" aria-labelledby="work-title">
+      <section class="section collection-section" id="collection" aria-labelledby="collection-title">
         <div class="section-heading">
-          <p class="eyebrow">Focus</p>
-          <h2 id="work-title">我关注的方向</h2>
+          <p class="eyebrow">Collection</p>
+          <h2 id="collection-title">小收藏夹</h2>
         </div>
-        <div class="focus-grid" data-render="focus"></div>
+        <div class="collection-grid" data-render="collection"></div>
       </section>
 
       <section class="section projects-section" id="projects" aria-labelledby="projects-title">
         <div class="section-heading">
-          <p class="eyebrow">Projects</p>
-          <h2 id="projects-title">精选项目</h2>
+          <p class="eyebrow">Works</p>
+          <h2 id="projects-title">最近想展示的东西</h2>
         </div>
         <div class="project-grid" data-render="projects"></div>
       </section>
@@ -97,9 +96,9 @@
         <div class="contact-panel">
           <div>
             <p class="eyebrow">Contact</p>
-            <h2 id="contact-title">欢迎交流</h2>
-            <p data-profile="contactText">
-              如果你对我的项目、合作或某个想法感兴趣，可以通过下面的方式联系我。
+            <h2 id="contact-title">来找我玩</h2>
+            <p>
+              如果你想聊项目、工具、学习路线，或者只是想打个招呼，可以从这些地方找到我。
             </p>
           </div>
           <div class="contact-links" data-render="links"></div>
@@ -108,7 +107,7 @@
     </main>
 
     <footer class="site-footer">
-      <span data-profile="footer">持续更新中。</span>
+      <span>Made with a soft little mood.</span>
       <a href="#top">回到顶部</a>
     </footer>
 
