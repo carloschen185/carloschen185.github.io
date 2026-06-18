@@ -1,21 +1,40 @@
-# [hsBUPT.github.io]()
+# 个人主页
 
------------------------------------------------------------------------------------------------
+这是一个可以直接托管在 GitHub Pages 的静态个人主页。
 
-## This project is adapted from GitHub imsyy's home. You can fork it to your own repository and name it `username.github.io`, then run it!
+## 本地预览
 
-### update log
+直接用浏览器打开 `index.html` 即可。如果想用本地服务器预览，也可以运行：
 
-#### Ver 1.1
+```powershell
+python -m http.server 8000
+```
 
-**Search boxes and styles have been added to the original author, ~~and click events and search engines will be added later.~~** **Join the search engine and optimize the search experience.Join the search engine and optimize the search experience.**
+然后访问 `http://localhost:8000`。
 
-![search-btn](https://img1.imgtp.com/2023/06/03/7iz95ogk.png)
+## 修改内容
 
-![search-line](https://img1.imgtp.com/2023/06/03/bG5fqM9L.png)
+主要文案在 `script.js` 顶部：
 
-### Tips
+- `profile`：名字、简介、位置、身份、联系方式说明
+- `focusItems`：关注方向
+- `projects`：项目卡片
+- `links`：邮箱、GitHub、博客等链接
 
-**After I add the search engine, You can set this Demo as the browser home page through the edge Settings.**
+线上首屏图暂时使用 GitHub 头像，生成的备用首屏图保留在本地 `assets/` 目录。
 
-![](https://img1.imgtp.com/2023/06/03/GSytnrP1.png)
+## 发布到个人 GitHub Pages
+
+个人主页仓库通常命名为：
+
+```text
+你的GitHub用户名.github.io
+```
+
+把本仓库推送到这个远程仓库的默认分支后，GitHub 会把页面发布到：
+
+```text
+https://你的GitHub用户名.github.io/
+```
+
+如果你已经有这个仓库，把远程地址告诉我，我可以继续帮你提交并推送。
