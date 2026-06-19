@@ -1,8 +1,6 @@
 {
     "collectionItems": [
         {
-            "detailImage": "",
-            "detailVideo": "",
             "icon": "01",
             "id": "computer",
             "markdownFile": "content/collection/computer.md",
@@ -10,8 +8,6 @@
             "title": "电脑折腾区"
         },
         {
-            "detailImage": "",
-            "detailVideo": "",
             "icon": "02",
             "id": "notes",
             "markdownFile": "content/collection/notes.md",
@@ -19,8 +15,6 @@
             "title": "学习便签"
         },
         {
-            "detailImage": "",
-            "detailVideo": "",
             "icon": "03",
             "id": "ideas",
             "markdownFile": "content/collection/ideas.md",
@@ -33,8 +27,7 @@
         "keywords": [
             "电脑",
             "创作",
-            "学习",
-            "一点点可爱"
+            "学习"
         ],
         "primaryButtonHref": "#projects",
         "primaryButtonText": "看看作品",
@@ -94,6 +87,11 @@
                 {
                     "href": "https://https://www.bilibili.com/video/BV1iz2tBpEAb/",
                     "label": "前往bilibili发布页",
+                    "type": "link"
+                },
+                {
+                    "href": "https://https://github.com/carloschen185/Tray",
+                    "label": "前往GitHub发布页",
                     "type": "link"
                 }
             ],
