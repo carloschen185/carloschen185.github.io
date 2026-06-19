@@ -304,6 +304,7 @@ h3 {
 .about-layout,
 .collection-grid,
 .project-grid,
+.games-grid,
 .contact-panel {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
@@ -341,7 +342,8 @@ h3 {
 
 .quick-facts div,
 .collection-card,
-.project-card {
+.project-card,
+.game-card {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.68);
@@ -368,14 +370,16 @@ h3 {
 }
 
 .collection-grid,
-.project-grid {
+.project-grid,
+.games-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
 
 .collection-card,
-.project-card {
+.project-card,
+.game-card {
   min-height: 220px;
   padding: 22px;
 }
@@ -476,6 +480,65 @@ h3 {
 }
 
 
+
+.games-section {
+  background: linear-gradient(180deg, rgba(255, 249, 233, 0.34), rgba(255, 226, 235, 0.5));
+}
+
+.game-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+.game-card::after {
+  content: "";
+  position: absolute;
+  right: -18px;
+  top: -18px;
+  width: 88px;
+  height: 88px;
+  border-radius: 8px;
+  background: repeating-linear-gradient(135deg, rgba(169, 232, 213, 0.42) 0 8px, rgba(255, 183, 207, 0.42) 8px 16px);
+  opacity: 0.7;
+}
+
+.game-orbit {
+  display: inline-grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  background: #3c2d36;
+  color: #fff9e9;
+  font-weight: 900;
+}
+
+.game-card-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.game-card-head span {
+  border: 1px solid rgba(217, 93, 134, 0.22);
+  border-radius: 8px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #d95d86;
+  font-size: 0.78rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.game-card p {
+  margin-bottom: 20px;
+  color: var(--muted);
+}
 .markdown-body {
   color: var(--muted);
 }
@@ -636,7 +699,8 @@ h3 {
   }
 
   .collection-grid,
-  .project-grid {
+  .project-grid,
+  .games-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -647,6 +711,7 @@ h3 {
   .about-layout,
   .collection-grid,
   .project-grid,
+  .games-grid,
   .contact-panel,
   .site-footer {
     width: min(100% - 24px, 1120px);

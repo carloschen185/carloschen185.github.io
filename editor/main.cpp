@@ -101,8 +101,13 @@ private:
   QLineEdit *secondaryButtonText_ = nullptr;
   QTableWidget *keywordsTable_ = nullptr;
 
+  QLineEdit *contactEyebrow_ = nullptr;
+  QLineEdit *contactTitle_ = nullptr;
+  QTableWidget *contactLinksTable_ = nullptr;
+
   QTableWidget *collectionTable_ = nullptr;
   QTableWidget *projectsTable_ = nullptr;
+  QTableWidget *gamesTable_ = nullptr;
 
   struct CommandResult {
     bool ok = false;
@@ -129,8 +134,10 @@ private:
     auto *tabs = new QTabWidget(this);
     tabs->addTab(buildPersonTab(), QStringLiteral("个人资料"));
     tabs->addTab(buildHomeTab(), QStringLiteral("首页设置"));
+    tabs->addTab(buildContactTab(), QStringLiteral("来找我玩"));
     tabs->addTab(buildCollectionTab(), QStringLiteral("收藏夹"));
     tabs->addTab(buildProjectsTab(), QStringLiteral("想展示的东西"));
+    tabs->addTab(buildGamesTab(), QStringLiteral("开源小游戏"));
     setCentralWidget(tabs);
   }
 
@@ -152,7 +159,6 @@ private:
     telegram_ = line();
     heroIntro_ = text(80);
     aboutText_ = text(120);
-    contactText_ = text(80);
     footerText_ = line();
     avatar_ = line();
 
@@ -169,7 +175,6 @@ private:
     form->addRow(QStringLiteral("Telegram"), telegram_);
     form->addRow(QStringLiteral("首屏简介"), heroIntro_);
     form->addRow(QStringLiteral("关于我介绍"), aboutText_);
-    form->addRow(QStringLiteral("联系区说明"), contactText_);
     form->addRow(QStringLiteral("页脚文字"), footerText_);
     form->addRow(QStringLiteral("头像路径"), avatar_);
 
@@ -206,6 +211,27 @@ private:
     return page;
   }
 
+  QWidget *buildContactTab() {
+    auto *page = new QWidget;
+    auto *layout = new QVBoxLayout(page);
+    auto *form = new QFormLayout;
+
+    contactEyebrow_ = line();
+    contactTitle_ = line();
+    contactText_ = text(80);
+    contactLinksTable_ = table({QStringLiteral("显示文字"), QStringLiteral("链接地址")});
+
+    form->addRow(QStringLiteral("小标题"), contactEyebrow_);
+    form->addRow(QStringLiteral("标题"), contactTitle_);
+    form->addRow(QStringLiteral("说明文字"), contactText_);
+
+    layout->addWidget(hint(QStringLiteral("这里编辑网页底部“来找我玩”的内容。联系方式可以自由添加、删除和排序；链接可以写 https://、mailto:、tel: 或其他网页能打开的地址。")));
+    layout->addLayout(form);
+    layout->addWidget(label(QStringLiteral("联系方式")));
+    layout->addWidget(withButtons(contactLinksTable_));
+    return page;
+  }
+
   QWidget *buildCollectionTab() {
     auto *page = new QWidget;
     auto *layout = new QVBoxLayout(page);
@@ -227,6 +253,15 @@ private:
     connect(editMarkdownButton, &QPushButton::clicked, this, [this] { editProjectActionMarkdown(); });
     layout->addWidget(hint(QStringLiteral("这里可以添加、删除和调整“想展示的东西”。先选中一行，再点“添加按钮到选中项目”；Markdown 按钮内容请点“编辑按钮 Markdown”单独编辑。")));
     layout->addWidget(withButtons(projectsTable_, {addActionButton, editMarkdownButton}));
+    return page;
+  }
+
+  QWidget *buildGamesTab() {
+    auto *page = new QWidget;
+    auto *layout = new QVBoxLayout(page);
+    gamesTable_ = table({QStringLiteral("图标"), QStringLiteral("名称"), QStringLiteral("说明"), QStringLiteral("标签，用英文逗号分隔"), QStringLiteral("可玩链接"), QStringLiteral("源码链接"), QStringLiteral("许可证")});
+    layout->addWidget(hint(QStringLiteral("这里可以添加、删除和调整主页上的开源网页小游戏。可玩链接会打开游戏，源码链接会打开 GitHub 项目。")));
+    layout->addWidget(withButtons(gamesTable_));
     return page;
   }
 
@@ -532,6 +567,34 @@ private:
     };
   }
 
+  static QString emailHref(const QString &email) {
+    const QString value = email.trimmed();
+    if (value.isEmpty() || value.startsWith(QStringLiteral("mailto:"), Qt::CaseInsensitive)) {
+      return value;
+    }
+    return QStringLiteral("mailto:") + value;
+  }
+
+  static void appendContactLink(QJsonArray *links, const QString &label, const QString &href) {
+    if (!links) {
+      return;
+    }
+    const QString cleanLabel = label.trimmed();
+    const QString cleanHref = href.trimmed();
+    if (!cleanLabel.isEmpty() && !cleanHref.isEmpty()) {
+      links->append(QJsonObject{{QStringLiteral("label"), cleanLabel}, {QStringLiteral("href"), cleanHref}});
+    }
+  }
+
+  static QJsonArray defaultContactLinksFromPerson(const QJsonObject &person) {
+    QJsonArray links;
+    appendContactLink(&links, QStringLiteral("GitHub"), person.value(QStringLiteral("github")).toString());
+    appendContactLink(&links, QStringLiteral("Email"), emailHref(person.value(QStringLiteral("email")).toString()));
+    appendContactLink(&links, QStringLiteral("Bilibili"), person.value(QStringLiteral("bilibili")).toString());
+    appendContactLink(&links, QStringLiteral("Telegram"), person.value(QStringLiteral("telegram")).toString());
+    return links;
+  }
+
   QJsonObject normalize(const QJsonObject &input) const {
     QJsonObject normalized = input;
 
@@ -560,12 +623,22 @@ private:
       normalized[QStringLiteral("person")] = person;
     }
 
+    QJsonObject person = normalized.value(QStringLiteral("person")).toObject();
+    if (!person.contains(QStringLiteral("links"))) {
+      person[QStringLiteral("links")] = input.contains(QStringLiteral("links"))
+          ? input.value(QStringLiteral("links")).toArray()
+          : defaultContactLinksFromPerson(person);
+      normalized[QStringLiteral("person")] = person;
+    }
+
     if (!normalized.contains(QStringLiteral("sections"))) {
       normalized[QStringLiteral("sections")] = QJsonObject{
           {QStringLiteral("collectionEyebrow"), QStringLiteral("Collection")},
           {QStringLiteral("collectionTitle"), QStringLiteral("小收藏夹")},
           {QStringLiteral("projectEyebrow"), QStringLiteral("Works")},
           {QStringLiteral("projectTitle"), QStringLiteral("最近想展示的东西")},
+          {QStringLiteral("gamesEyebrow"), QStringLiteral("Open Games")},
+          {QStringLiteral("gamesTitle"), QStringLiteral("开源小游戏")},
           {QStringLiteral("contactEyebrow"), QStringLiteral("Contact")},
           {QStringLiteral("contactTitle"), QStringLiteral("来找我玩")},
           {QStringLiteral("footerBackToTopText"), QStringLiteral("回到顶部")}};
@@ -578,6 +651,7 @@ private:
     const auto person = data_.value(QStringLiteral("person")).toObject();
     const auto site = data_.value(QStringLiteral("site")).toObject();
     const auto hero = data_.value(QStringLiteral("hero")).toObject();
+    const auto sections = data_.value(QStringLiteral("sections")).toObject();
 
     displayName_->setText(person.value(QStringLiteral("displayName")).toString());
     shortName_->setText(person.value(QStringLiteral("shortName")).toString());
@@ -604,13 +678,18 @@ private:
     secondaryButtonText_->setText(hero.value(QStringLiteral("secondaryButtonText")).toString(QStringLiteral("发封邮件")));
     fillStringTable(keywordsTable_, hero.value(QStringLiteral("keywords")).toArray());
 
+    contactEyebrow_->setText(sections.value(QStringLiteral("contactEyebrow")).toString(QStringLiteral("Contact")));
+    contactTitle_->setText(sections.value(QStringLiteral("contactTitle")).toString(QStringLiteral("来找我玩")));
+    fillContactLinksTable(person.value(QStringLiteral("links")).toArray());
+
     fillCollectionTable(data_.value(QStringLiteral("collectionItems")).toArray());
     fillProjectsTable(data_.value(QStringLiteral("projects")).toArray());
+    fillGamesTable(data_.value(QStringLiteral("games")).toArray());
   }
 
   QJsonObject collectFromUi() const {
     QJsonObject root;
-    root[QStringLiteral("person")] = QJsonObject{
+    QJsonObject person{
         {QStringLiteral("displayName"), displayName_->text()},
         {QStringLiteral("shortName"), shortName_->text()},
         {QStringLiteral("brandMark"), brandMark_->text()},
@@ -627,6 +706,8 @@ private:
         {QStringLiteral("contactText"), contactText_->toPlainText()},
         {QStringLiteral("footerText"), footerText_->text()},
         {QStringLiteral("avatar"), avatar_->text()}};
+    person[QStringLiteral("links")] = collectContactLinksTable();
+    root[QStringLiteral("person")] = person;
 
     root[QStringLiteral("site")] =
         QJsonObject{{QStringLiteral("themeColor"), themeColor_->text()}, {QStringLiteral("heroImage"), heroImage_->text()}};
@@ -636,7 +717,10 @@ private:
         {QStringLiteral("primaryButtonHref"), primaryButtonHref_->text()},
         {QStringLiteral("secondaryButtonText"), secondaryButtonText_->text()},
         {QStringLiteral("keywords"), collectStringTable(keywordsTable_)}};
-    root[QStringLiteral("sections")] = data_.value(QStringLiteral("sections")).toObject();
+    QJsonObject sections = data_.value(QStringLiteral("sections")).toObject();
+    sections[QStringLiteral("contactEyebrow")] = contactEyebrow_->text();
+    sections[QStringLiteral("contactTitle")] = contactTitle_->text();
+    root[QStringLiteral("sections")] = sections;
     root[QStringLiteral("collectionItems")] = collectCollectionTable();
     root[QStringLiteral("projects")] = collectProjectsTable();
     return root;
@@ -894,6 +978,14 @@ private:
       }
     }
     return values;
+  }
+
+  void fillContactLinksTable(const QJsonArray &values) {
+    fillObjectTable(contactLinksTable_, values, {QStringLiteral("label"), QStringLiteral("href")});
+  }
+
+  QJsonArray collectContactLinksTable() const {
+    return collectObjectTable(contactLinksTable_, {QStringLiteral("label"), QStringLiteral("href")});
   }
 
 
@@ -1198,6 +1290,54 @@ private:
                                 {QStringLiteral("text"), textValue},
                                 {QStringLiteral("tags"), tags},
                                 {QStringLiteral("actions"), actionsFromText(actionText)}});
+    }
+    return values;
+  }
+  void fillGamesTable(const QJsonArray &values) {
+    gamesTable_->setRowCount(0);
+    for (const auto &value : values) {
+      const auto object = value.toObject();
+      QStringList tags;
+      for (const auto &tag : object.value(QStringLiteral("tags")).toArray()) {
+        tags << tag.toString();
+      }
+      const int row = gamesTable_->rowCount();
+      gamesTable_->insertRow(row);
+      setItemText(gamesTable_, row, 0, object.value(QStringLiteral("icon")).toString());
+      setItemText(gamesTable_, row, 1, object.value(QStringLiteral("title")).toString());
+      setItemText(gamesTable_, row, 2, object.value(QStringLiteral("text")).toString());
+      setItemText(gamesTable_, row, 3, tags.join(QStringLiteral(", ")));
+      setItemText(gamesTable_, row, 4, object.value(QStringLiteral("playUrl")).toString());
+      setItemText(gamesTable_, row, 5, object.value(QStringLiteral("sourceUrl")).toString());
+      setItemText(gamesTable_, row, 6, object.value(QStringLiteral("license")).toString());
+    }
+  }
+
+  QJsonArray collectGamesTable() const {
+    QJsonArray values;
+    for (int row = 0; row < gamesTable_->rowCount(); ++row) {
+      const QString icon = itemText(gamesTable_, row, 0).trimmed();
+      const QString title = itemText(gamesTable_, row, 1).trimmed();
+      const QString textValue = itemText(gamesTable_, row, 2).trimmed();
+      const QString tagText = itemText(gamesTable_, row, 3);
+      const QString playUrl = itemText(gamesTable_, row, 4).trimmed();
+      const QString sourceUrl = itemText(gamesTable_, row, 5).trimmed();
+      const QString license = itemText(gamesTable_, row, 6).trimmed();
+      if (icon.isEmpty() && title.isEmpty() && textValue.isEmpty() && tagText.trimmed().isEmpty() && playUrl.isEmpty() && sourceUrl.isEmpty() && license.isEmpty()) {
+        continue;
+      }
+
+      QJsonArray tags;
+      for (const QString &tag : tagText.split(QStringLiteral(","), Qt::SkipEmptyParts)) {
+        tags.append(tag.trimmed());
+      }
+      values.append(QJsonObject{{QStringLiteral("icon"), icon},
+                                {QStringLiteral("title"), title},
+                                {QStringLiteral("text"), textValue},
+                                {QStringLiteral("tags"), tags},
+                                {QStringLiteral("playUrl"), playUrl},
+                                {QStringLiteral("sourceUrl"), sourceUrl},
+                                {QStringLiteral("license"), license}});
     }
     return values;
   }

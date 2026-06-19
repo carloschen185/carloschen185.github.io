@@ -34,6 +34,8 @@ const defaultData = {
     collectionTitle: "小收藏夹",
     projectEyebrow: "Works",
     projectTitle: "最近想展示的东西",
+    gamesEyebrow: "Open Games",
+    gamesTitle: "开源小游戏",
     contactEyebrow: "Contact",
     contactTitle: "来找我玩",
     footerBackToTopText: "回到顶部",
@@ -72,6 +74,40 @@ const defaultData = {
       tags: ["WIP", "Idea"],
     },
   ],
+  games: [
+    {
+      title: "WebMC",
+      text: "在浏览器里跑的 Minecraft 客户端概念验证，适合放在这里当一个很酷的入口。",
+      tags: ["Minecraft", "3D", "MIT"],
+      playUrl: "https://webmc.js.org/",
+      sourceUrl: "https://github.com/michaljaz/webmc",
+      license: "MIT",
+    },
+    {
+      title: "2048",
+      text: "经典滑块合成小游戏，轻量、耐玩，打开就能摸一把。",
+      tags: ["Puzzle", "JavaScript", "MIT"],
+      playUrl: "https://gabrielecirulli.github.io/2048/",
+      sourceUrl: "https://github.com/gabrielecirulli/2048",
+      license: "MIT",
+    },
+    {
+      title: "Hextris",
+      text: "快节奏六边形消除游戏，像 Tetris 但更容易让人手忙脚乱。",
+      tags: ["Puzzle", "HTML5", "GPL-3"],
+      playUrl: "https://hextris.github.io/hextris/",
+      sourceUrl: "https://github.com/Hextris/hextris",
+      license: "GPL-3.0-or-later",
+    },
+    {
+      title: "A Dark Room",
+      text: "极简文字冒险，从点燃火堆开始慢慢展开世界。",
+      tags: ["Text", "Adventure", "MPL-2"],
+      playUrl: "https://doublespeakgames.github.io/adarkroom/",
+      sourceUrl: "https://github.com/doublespeakgames/adarkroom",
+      license: "MPL-2.0",
+    },
+  ],
 };
 
 function escapeHtml(value) {
@@ -95,7 +131,23 @@ function mergeObject(base, value) {
   return { ...base, ...(value && typeof value === "object" ? value : {}) };
 }
 
+function normalizeLinks(links) {
+  if (!Array.isArray(links)) {
+    return null;
+  }
+  return links
+    .map((link) => ({
+      label: String(link?.label ?? "").trim(),
+      href: String(link?.href ?? "").trim(),
+    }))
+    .filter((link) => link.label && link.href);
+}
+
 function linksFromPerson(person) {
+  const customLinks = normalizeLinks(person.links);
+  if (customLinks) {
+    return customLinks;
+  }
   return [
     { label: "GitHub", href: person.github },
     { label: "Email", href: mailto(person.email) },
@@ -177,6 +229,10 @@ function normalizeData(rawData) {
     projectSection: {
       eyebrow: sections.projectEyebrow,
       title: sections.projectTitle,
+    },
+    gameSection: {
+      eyebrow: sections.gamesEyebrow,
+      title: sections.gamesTitle,
     },
     contact: {
       eyebrow: sections.contactEyebrow,
@@ -376,6 +432,37 @@ function renderProjects(projects) {
     )
     .join("");
 }
+function renderGames(games) {
+  const container = document.querySelector('[data-render="games"]');
+  if (!container) {
+    return;
+  }
+  container.innerHTML = (games ?? [])
+    .map(
+      (game) => `
+        <article class="game-card">
+          <div class="game-orbit" aria-hidden="true">${escapeHtml(game.icon || "▣")}</div>
+          <div>
+            <div class="game-card-head">
+              <h3>${escapeHtml(game.title)}</h3>
+              ${game.license ? `<span>${escapeHtml(game.license)}</span>` : ""}
+            </div>
+            <p>${escapeHtml(game.text)}</p>
+          </div>
+          <div class="project-meta">
+            <div class="project-tags">
+              ${(game.tags ?? []).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
+            </div>
+            <div class="project-actions">
+              ${game.playUrl ? `<a class="project-action" href="${escapeHtml(game.playUrl)}" target="_blank" rel="noreferrer">开始玩</a>` : ""}
+              ${game.sourceUrl ? `<a class="project-action" href="${escapeHtml(game.sourceUrl)}" target="_blank" rel="noreferrer">源码</a>` : ""}
+            </div>
+          </div>
+        </article>
+      `,
+    )
+    .join("");
+}
 function renderLinks(links) {
   const container = document.querySelector('[data-render="links"]');
   container.innerHTML = (links ?? [])
@@ -418,6 +505,8 @@ function renderPage(rawData) {
   setText("[data-collection-title]", data.collectionSection.title);
   setText("[data-project-eyebrow]", data.projectSection.eyebrow);
   setText("[data-project-title]", data.projectSection.title);
+  setText("[data-games-eyebrow]", data.gameSection.eyebrow);
+  setText("[data-games-title]", data.gameSection.title);
 
   setText("[data-contact-eyebrow]", data.contact.eyebrow);
   setText("[data-contact-title]", data.contact.title);
