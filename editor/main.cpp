@@ -82,6 +82,7 @@ private:
   QTextEdit *aboutText_ = nullptr;
   QTextEdit *contactText_ = nullptr;
   QLineEdit *footerText_ = nullptr;
+  QLineEdit *avatar_ = nullptr;
 
   QLineEdit *themeColor_ = nullptr;
   QLineEdit *heroImage_ = nullptr;
@@ -144,6 +145,7 @@ private:
     aboutText_ = text(120);
     contactText_ = text(80);
     footerText_ = line();
+    avatar_ = line();
 
     form->addRow(QStringLiteral("显示名称"), displayName_);
     form->addRow(QStringLiteral("短名称"), shortName_);
@@ -160,6 +162,7 @@ private:
     form->addRow(QStringLiteral("关于我介绍"), aboutText_);
     form->addRow(QStringLiteral("联系区说明"), contactText_);
     form->addRow(QStringLiteral("页脚文字"), footerText_);
+    form->addRow(QStringLiteral("头像路径"), avatar_);
 
     layout->addWidget(hint(QStringLiteral("这里只编辑一份个人资料。保存后，网页标题、导航、首屏、关于我、联系方式会自动同步使用这些信息，并推送到 GitHub Pages。")));
     layout->addLayout(form);
@@ -197,8 +200,8 @@ private:
   QWidget *buildCollectionTab() {
     auto *page = new QWidget;
     auto *layout = new QVBoxLayout(page);
-    collectionTable_ = table({QStringLiteral("图标/编号"), QStringLiteral("标题"), QStringLiteral("说明")});
-    layout->addWidget(hint(QStringLiteral("这里可以添加、删除和调整收藏夹卡片。")));
+    collectionTable_ = table({QStringLiteral("图标/编号"), QStringLiteral("标题"), QStringLiteral("卡片说明"), QStringLiteral("点开后 Markdown"), QStringLiteral("图片路径"), QStringLiteral("视频路径")});
+    layout->addWidget(hint(QStringLiteral("这里可以添加、删除和调整收藏夹卡片。点开后 Markdown 支持标题、列表、粗体、链接；图片/视频填路径或 URL。")));
     layout->addWidget(withButtons(collectionTable_));
     return page;
   }
@@ -206,8 +209,8 @@ private:
   QWidget *buildProjectsTab() {
     auto *page = new QWidget;
     auto *layout = new QVBoxLayout(page);
-    projectsTable_ = table({QStringLiteral("标题"), QStringLiteral("说明"), QStringLiteral("标签，用英文逗号分隔")});
-    layout->addWidget(hint(QStringLiteral("这里可以添加、删除和调整“想展示的东西”。")));
+    projectsTable_ = table({QStringLiteral("标题"), QStringLiteral("说明"), QStringLiteral("标签，用英文逗号分隔"), QStringLiteral("按钮，每行：文字 | 链接")});
+    layout->addWidget(hint(QStringLiteral("这里可以添加、删除和调整“想展示的东西”。按钮数量不限，在按钮列里每行写：按钮文字 | 链接。")));
     layout->addWidget(withButtons(projectsTable_));
     return page;
   }
@@ -245,6 +248,8 @@ private:
     widget->setSelectionBehavior(QAbstractItemView::SelectRows);
     widget->setSelectionMode(QAbstractItemView::SingleSelection);
     widget->setAlternatingRowColors(true);
+    widget->setWordWrap(true);
+    widget->verticalHeader()->setDefaultSectionSize(72);
     return widget;
   }
 
@@ -540,6 +545,7 @@ private:
     aboutText_->setPlainText(person.value(QStringLiteral("aboutText")).toString());
     contactText_->setPlainText(person.value(QStringLiteral("contactText")).toString());
     footerText_->setText(person.value(QStringLiteral("footerText")).toString());
+    avatar_->setText(person.value(QStringLiteral("avatar")).toString(QStringLiteral("assets/avatar-peach.svg")));
 
     themeColor_->setText(site.value(QStringLiteral("themeColor")).toString(QStringLiteral("#fff4cf")));
     heroImage_->setText(site.value(QStringLiteral("heroImage")).toString(QStringLiteral("assets/hero-cute.jpg")));
@@ -550,7 +556,7 @@ private:
     fillStringTable(keywordsTable_, hero.value(QStringLiteral("keywords")).toArray());
 
     fillObjectTable(collectionTable_, data_.value(QStringLiteral("collectionItems")).toArray(),
-                    {QStringLiteral("icon"), QStringLiteral("title"), QStringLiteral("text")});
+                    {QStringLiteral("icon"), QStringLiteral("title"), QStringLiteral("text"), QStringLiteral("detailMarkdown"), QStringLiteral("detailImage"), QStringLiteral("detailVideo")});
     fillProjectsTable(data_.value(QStringLiteral("projects")).toArray());
   }
 
@@ -571,7 +577,8 @@ private:
         {QStringLiteral("heroIntro"), heroIntro_->toPlainText()},
         {QStringLiteral("aboutText"), aboutText_->toPlainText()},
         {QStringLiteral("contactText"), contactText_->toPlainText()},
-        {QStringLiteral("footerText"), footerText_->text()}};
+        {QStringLiteral("footerText"), footerText_->text()},
+        {QStringLiteral("avatar"), avatar_->text()}};
 
     root[QStringLiteral("site")] =
         QJsonObject{{QStringLiteral("themeColor"), themeColor_->text()}, {QStringLiteral("heroImage"), heroImage_->text()}};
@@ -583,7 +590,7 @@ private:
         {QStringLiteral("keywords"), collectStringTable(keywordsTable_)}};
     root[QStringLiteral("sections")] = data_.value(QStringLiteral("sections")).toObject();
     root[QStringLiteral("collectionItems")] =
-        collectObjectTable(collectionTable_, {QStringLiteral("icon"), QStringLiteral("title"), QStringLiteral("text")});
+        collectObjectTable(collectionTable_, {QStringLiteral("icon"), QStringLiteral("title"), QStringLiteral("text"), QStringLiteral("detailMarkdown"), QStringLiteral("detailImage"), QStringLiteral("detailVideo")});
     root[QStringLiteral("projects")] = collectProjectsTable();
     return root;
   }
@@ -637,6 +644,40 @@ private:
     return values;
   }
 
+  static QString actionsToText(const QJsonArray &actions) {
+    QStringList lines;
+    for (const auto &actionValue : actions) {
+      const auto action = actionValue.toObject();
+      const QString label = action.value(QStringLiteral("label")).toString().trimmed();
+      const QString href = action.value(QStringLiteral("href")).toString().trimmed();
+      if (!label.isEmpty() || !href.isEmpty()) {
+        lines << (label + QStringLiteral(" | ") + href).trimmed();
+      }
+    }
+    return lines.join(QStringLiteral("\n"));
+  }
+
+  static QJsonArray actionsFromText(QString value) {
+    value.replace(QStringLiteral("\r"), QStringLiteral("\n"));
+    value.replace(QStringLiteral("；"), QStringLiteral("\n"));
+    value.replace(QStringLiteral(";"), QStringLiteral("\n"));
+
+    QJsonArray actions;
+    for (const QString &rawLine : value.split(QStringLiteral("\n"), Qt::SkipEmptyParts)) {
+      const QString line = rawLine.trimmed();
+      if (line.isEmpty()) {
+        continue;
+      }
+      const int separator = line.indexOf(QStringLiteral("|"));
+      const QString label = separator >= 0 ? line.left(separator).trimmed() : line;
+      const QString href = separator >= 0 ? line.mid(separator + 1).trimmed() : QString();
+      if (!label.isEmpty() && !href.isEmpty()) {
+        actions.append(QJsonObject{{QStringLiteral("label"), label}, {QStringLiteral("href"), href}});
+      }
+    }
+    return actions;
+  }
+
   void fillProjectsTable(const QJsonArray &values) {
     projectsTable_->setRowCount(0);
     for (const auto &value : values) {
@@ -650,6 +691,7 @@ private:
       setItemText(projectsTable_, row, 0, object.value(QStringLiteral("title")).toString());
       setItemText(projectsTable_, row, 1, object.value(QStringLiteral("text")).toString());
       setItemText(projectsTable_, row, 2, tags.join(QStringLiteral(", ")));
+      setItemText(projectsTable_, row, 3, actionsToText(object.value(QStringLiteral("actions")).toArray()));
     }
   }
 
@@ -659,7 +701,8 @@ private:
       const QString title = itemText(projectsTable_, row, 0).trimmed();
       const QString textValue = itemText(projectsTable_, row, 1).trimmed();
       const QString tagText = itemText(projectsTable_, row, 2);
-      if (title.isEmpty() && textValue.isEmpty() && tagText.trimmed().isEmpty()) {
+      const QString actionText = itemText(projectsTable_, row, 3);
+      if (title.isEmpty() && textValue.isEmpty() && tagText.trimmed().isEmpty() && actionText.trimmed().isEmpty()) {
         continue;
       }
 
@@ -667,7 +710,10 @@ private:
       for (const QString &tag : tagText.split(QStringLiteral(","), Qt::SkipEmptyParts)) {
         tags.append(tag.trimmed());
       }
-      values.append(QJsonObject{{QStringLiteral("title"), title}, {QStringLiteral("text"), textValue}, {QStringLiteral("tags"), tags}});
+      values.append(QJsonObject{{QStringLiteral("title"), title},
+                                {QStringLiteral("text"), textValue},
+                                {QStringLiteral("tags"), tags},
+                                {QStringLiteral("actions"), actionsFromText(actionText)}});
     }
     return values;
   }

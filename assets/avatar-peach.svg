@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="peach avatar">
+  <defs>
+    <linearGradient id="skin" x1="54" y1="36" x2="202" y2="220" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffe7a8"/>
+      <stop offset="0.48" stop-color="#ffb7cf"/>
+      <stop offset="1" stop-color="#f58bb1"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="143" y1="24" x2="211" y2="93" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#b9f1d6"/>
+      <stop offset="1" stop-color="#61cfae"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="72" fill="#fff9e9"/>
+  <circle cx="128" cy="136" r="92" fill="url(#skin)" stroke="#ffffff" stroke-width="10"/>
+  <path d="M141 56c10-31 42-43 74-29-7 34-35 57-73 53" fill="url(#leaf)" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+  <path d="M128 58c-8 40-8 89 0 144" fill="none" stroke="#e7789b" stroke-width="7" stroke-linecap="round" opacity=".35"/>
+  <circle cx="96" cy="137" r="10" fill="#3c2d36"/>
+  <circle cx="160" cy="137" r="10" fill="#3c2d36"/>
+  <path d="M104 171c16 16 32 16 48 0" fill="none" stroke="#3c2d36" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="74" cy="158" r="13" fill="#ffd3df" opacity=".82"/>
+  <circle cx="182" cy="158" r="13" fill="#ffd3df" opacity=".82"/>
+</svg>

@@ -29,6 +29,7 @@
     <main id="top">
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-copy">
+          <img class="avatar" src="assets/avatar-peach.svg" alt="Carlos Chen 的头像" data-avatar>
           <p class="eyebrow" data-hero-eyebrow>Hello, welcome</p>
           <h1 id="hero-title" data-hero-title>这里是 Carlos 的小小主页。</h1>
           <p class="intro" data-hero-intro>
@@ -93,6 +94,19 @@
       <a href="#top" data-footer-top>回到顶部</a>
     </footer>
 
+
+    <dialog class="collection-dialog" data-collection-dialog>
+      <article class="collection-dialog-card">
+        <button class="dialog-close" type="button" data-dialog-close aria-label="关闭">×</button>
+        <img class="dialog-image" data-dialog-image hidden alt="收藏夹图片">
+        <video class="dialog-video" data-dialog-video hidden controls playsinline></video>
+        <div class="dialog-copy">
+          <p class="eyebrow">Collection</p>
+          <h2 data-dialog-title></h2>
+          <div class="markdown-body" data-dialog-markdown></div>
+        </div>
+      </article>
+    </dialog>
     <script src="script.js"></script>
   </body>
 </html>

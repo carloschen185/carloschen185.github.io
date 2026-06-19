@@ -16,6 +16,7 @@ const defaultData = {
       "我是 Carlos Chen，一个热衷于琢磨电脑、尝试新工具、记录想法的人。这个主页会放我正在做的小项目、学习笔记，以及一些值得留下来的链接。",
     contactText: "如果你想聊项目、工具、学习路线，或者只是想打个招呼，可以从这些地方找到我。",
     footerText: "Made with a soft little mood.",
+    avatar: "assets/avatar-peach.svg",
   },
   site: {
     themeColor: "#fff4cf",
@@ -145,6 +146,7 @@ function normalizeData(rawData) {
     profile: {
       brandName: displayName,
       brandMark: person.brandMark || firstGlyph(displayName),
+      avatar: person.avatar || "assets/avatar-peach.svg",
     },
     hero: {
       eyebrow: hero.eyebrow,
@@ -234,12 +236,113 @@ function renderFacts(facts) {
     .join("");
 }
 
+function renderInlineMarkdown(value) {
+  return escapeHtml(value)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|#[^\s)]+|mailto:[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>');
+}
+
+function markdownToHtml(markdown) {
+  const lines = String(markdown || "").replaceAll("\r\n", "\n").split("\n");
+  const html = [];
+  let listOpen = false;
+
+  const closeList = () => {
+    if (listOpen) {
+      html.push("</ul>");
+      listOpen = false;
+    }
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) {
+      closeList();
+      continue;
+    }
+    const heading = line.match(/^(#{1,3})\s+(.+)$/);
+    if (heading) {
+      closeList();
+      const level = heading[1].length + 2;
+      html.push(`<h${level}>${renderInlineMarkdown(heading[2])}</h${level}>`);
+      continue;
+    }
+    const listItem = line.match(/^[-*]\s+(.+)$/);
+    if (listItem) {
+      if (!listOpen) {
+        html.push("<ul>");
+        listOpen = true;
+      }
+      html.push(`<li>${renderInlineMarkdown(listItem[1])}</li>`);
+      continue;
+    }
+    closeList();
+    html.push(`<p>${renderInlineMarkdown(line)}</p>`);
+  }
+  closeList();
+  return html.join("");
+}
+
+function openCollectionDialog(item) {
+  const dialog = document.querySelector("[data-collection-dialog]");
+  if (!dialog) {
+    return;
+  }
+  setText("[data-dialog-title]", item.title);
+  const image = dialog.querySelector("[data-dialog-image]");
+  const video = dialog.querySelector("[data-dialog-video]");
+  const markdown = dialog.querySelector("[data-dialog-markdown]");
+  const detailText = item.detailMarkdown || item.text || "";
+
+  if (image) {
+    image.hidden = !item.detailImage;
+    image.src = item.detailImage || "";
+    image.alt = item.title ? `${item.title} 的图片` : "收藏夹图片";
+  }
+  if (video) {
+    video.hidden = !item.detailVideo;
+    video.src = item.detailVideo || "";
+  }
+  if (markdown) {
+    markdown.innerHTML = markdownToHtml(detailText);
+  }
+
+  if (typeof dialog.showModal === "function") {
+    dialog.showModal();
+  } else {
+    dialog.setAttribute("open", "");
+  }
+}
+
+function closeCollectionDialog() {
+  const dialog = document.querySelector("[data-collection-dialog]");
+  const video = dialog?.querySelector("[data-dialog-video]");
+  if (video) {
+    video.pause();
+  }
+  if (dialog?.open) {
+    dialog.close();
+  }
+}
+
+
+function setupCollectionDialog() {
+  const dialog = document.querySelector("[data-collection-dialog]");
+  const close = document.querySelector("[data-dialog-close]");
+  close?.addEventListener("click", closeCollectionDialog);
+  dialog?.addEventListener("click", (event) => {
+    if (event.target === dialog) {
+      closeCollectionDialog();
+    }
+  });
+}
 function renderCollection(items) {
   const container = document.querySelector('[data-render="collection"]');
   container.innerHTML = (items ?? [])
     .map(
-      (item) => `
-        <article class="collection-card">
+      (item, index) => `
+        <article class="collection-card" role="button" tabindex="0" data-collection-index="${index}">
           <span class="collection-icon" aria-hidden="true">${escapeHtml(item.icon)}</span>
           <div>
             <h3>${escapeHtml(item.title)}</h3>
@@ -249,6 +352,29 @@ function renderCollection(items) {
       `,
     )
     .join("");
+
+  container.querySelectorAll("[data-collection-index]").forEach((card) => {
+    const open = () => openCollectionDialog(items[Number(card.dataset.collectionIndex)]);
+    card.addEventListener("click", open);
+    card.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        open();
+      }
+    });
+  });
+}
+function renderProjectActions(actions) {
+  const visibleActions = (actions ?? []).filter((action) => action.label && action.href);
+  if (!visibleActions.length) {
+    return "";
+  }
+  return `<div class="project-actions">${visibleActions
+    .map(
+      (action) =>
+        `<a class="project-action" href="${escapeHtml(action.href)}" target="_blank" rel="noreferrer">${escapeHtml(action.label)}</a>`,
+    )
+    .join("")}</div>`;
 }
 
 function renderProjects(projects) {
@@ -261,15 +387,17 @@ function renderProjects(projects) {
             <h3>${escapeHtml(project.title)}</h3>
             <p>${escapeHtml(project.text)}</p>
           </div>
-          <div class="project-tags">
-            ${(project.tags ?? []).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
+          <div class="project-meta">
+            <div class="project-tags">
+              ${(project.tags ?? []).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
+            </div>
+            ${renderProjectActions(project.actions)}
           </div>
         </article>
       `,
     )
     .join("");
 }
-
 function renderLinks(links) {
   const container = document.querySelector('[data-render="links"]');
   container.innerHTML = (links ?? [])
@@ -292,6 +420,8 @@ function renderPage(rawData) {
 
   setText("[data-brand-mark]", data.profile.brandMark);
   setText("[data-brand-name]", data.profile.brandName);
+  setAttr("[data-avatar]", "src", data.profile.avatar);
+  setAttr("[data-avatar]", "alt", `${data.profile.brandName} 的头像`);
 
   setText("[data-hero-eyebrow]", data.hero.eyebrow);
   renderHeroTitle(data.hero);
