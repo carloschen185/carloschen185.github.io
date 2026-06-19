@@ -149,6 +149,7 @@ function normalizeData(rawData) {
     hero: {
       eyebrow: hero.eyebrow,
       title: `这里是 ${shortName} 的小小主页。`,
+      titleName: shortName,
       intro: person.heroIntro,
       primaryButtonText: hero.primaryButtonText,
       primaryButtonHref: hero.primaryButtonHref,
@@ -195,6 +196,16 @@ function setText(selector, value) {
   if (node) {
     node.textContent = value ?? "";
   }
+}
+
+function renderHeroTitle(hero) {
+  const node = document.querySelector("[data-hero-title]");
+  if (!node) {
+    return;
+  }
+  const fallbackName = hero.title?.replace(/^这里是\s*/, "").replace(/\s*的小小主页。$/, "") || "";
+  const name = hero.titleName || fallbackName;
+  node.innerHTML = `这里是 <span class="hero-name">${escapeHtml(name)}</span> 的小小主页。`;
 }
 
 function setAttr(selector, attr, value) {
@@ -283,7 +294,7 @@ function renderPage(rawData) {
   setText("[data-brand-name]", data.profile.brandName);
 
   setText("[data-hero-eyebrow]", data.hero.eyebrow);
-  setText("[data-hero-title]", data.hero.title);
+  renderHeroTitle(data.hero);
   setText("[data-hero-intro]", data.hero.intro);
   setText("[data-hero-primary]", data.hero.primaryButtonText);
   setText("[data-hero-secondary]", data.hero.secondaryButtonText);
