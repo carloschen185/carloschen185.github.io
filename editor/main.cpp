@@ -16,6 +16,7 @@
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QMessageBox>
+#include <QProcess>
 #include <QPushButton>
 #include <QStatusBar>
 #include <QTableWidget>
@@ -93,11 +94,22 @@ private:
   QTableWidget *collectionTable_ = nullptr;
   QTableWidget *projectsTable_ = nullptr;
 
+  struct CommandResult {
+    bool ok = false;
+    int exitCode = -1;
+    QString output;
+  };
+
+  struct PublishResult {
+    bool ok = false;
+    QString message;
+  };
+
   void buildUi() {
     auto *toolbar = addToolBar(QStringLiteral("文件"));
     toolbar->setMovable(false);
     auto *openAction = toolbar->addAction(QStringLiteral("打开 JSON"));
-    auto *saveAction = toolbar->addAction(QStringLiteral("保存"));
+    auto *saveAction = toolbar->addAction(QStringLiteral("保存并同步"));
     auto *saveAsAction = toolbar->addAction(QStringLiteral("另存为"));
 
     connect(openAction, &QAction::triggered, this, [this] { chooseAndOpen(); });
@@ -149,7 +161,7 @@ private:
     form->addRow(QStringLiteral("联系区说明"), contactText_);
     form->addRow(QStringLiteral("页脚文字"), footerText_);
 
-    layout->addWidget(hint(QStringLiteral("这里只编辑一份个人资料。保存后，网页标题、导航、首屏、关于我、联系方式会自动同步使用这些信息。")));
+    layout->addWidget(hint(QStringLiteral("这里只编辑一份个人资料。保存后，网页标题、导航、首屏、关于我、联系方式会自动同步使用这些信息，并推送到 GitHub Pages。")));
     layout->addLayout(form);
     return page;
   }
@@ -342,11 +354,106 @@ private:
       return;
     }
     file.write(QJsonDocument(data_).toJson(QJsonDocument::Indented));
-    statusBarMessage(QStringLiteral("已保存：") + filePath_);
+    file.close();
+
+    statusBarMessage(QStringLiteral("已保存，正在同步到 GitHub Pages..."));
+    const auto publishResult = publishToGitHubPages();
+    if (publishResult.ok) {
+      statusBarMessage(publishResult.message);
+      QMessageBox::information(this, QStringLiteral("同步完成"), publishResult.message);
+    } else {
+      statusBarMessage(QStringLiteral("已保存，但同步失败"));
+      QMessageBox::warning(this, QStringLiteral("同步失败"), publishResult.message);
+    }
   }
 
   void statusBarMessage(const QString &message) {
     statusBar()->showMessage(message, 5000);
+  }
+
+  PublishResult publishToGitHubPages() const {
+    const QString repoPath = findPublishRepoPath();
+    if (repoPath.isEmpty()) {
+      return {false, QStringLiteral("找不到 publish-pages GitHub Pages 仓库。请确认它还在主页项目目录里。")};
+    }
+
+    const QString targetPath = QDir(repoPath).filePath(QStringLiteral("site-data.json"));
+    const QString sourcePath = QFileInfo(filePath_).canonicalFilePath();
+    const QString canonicalTarget = QFileInfo(targetPath).canonicalFilePath();
+    if (sourcePath != canonicalTarget) {
+      QFile::remove(targetPath);
+      if (!QFile::copy(filePath_, targetPath)) {
+        return {false, QStringLiteral("保存成功，但复制到发布仓库失败：") + targetPath};
+      }
+    }
+
+    auto status = runGit(repoPath, {QStringLiteral("status"), QStringLiteral("--short"), QStringLiteral("--"),
+                                    QStringLiteral("site-data.json")});
+    if (!status.ok) {
+      return {false, QStringLiteral("检查 Git 状态失败：\n") + status.output};
+    }
+    if (status.output.trimmed().isEmpty()) {
+      return {true, QStringLiteral("已保存，GitHub Pages 内容没有新变化。")};
+    }
+
+    auto add = runGit(repoPath, {QStringLiteral("add"), QStringLiteral("site-data.json")});
+    if (!add.ok) {
+      return {false, QStringLiteral("Git 暂存失败：\n") + add.output};
+    }
+
+    auto commit = runGit(repoPath, {QStringLiteral("commit"), QStringLiteral("-m"),
+                                    QStringLiteral("Update site data from editor")});
+    if (!commit.ok) {
+      return {false, QStringLiteral("Git 提交失败：\n") + commit.output};
+    }
+
+    auto push = runGit(repoPath, {QStringLiteral("push"), QStringLiteral("origin"), QStringLiteral("main")}, 120000);
+    if (!push.ok) {
+      return {false, QStringLiteral("Git 推送失败：\n") + push.output};
+    }
+
+    return {true, QStringLiteral("已保存并同步到 GitHub Pages。通常几十秒后网页会刷新。")};
+  }
+
+  QString findPublishRepoPath() const {
+    const QFileInfo dataFile(filePath_);
+    const QString dataDir = dataFile.absolutePath();
+    const QString appDir = QCoreApplication::applicationDirPath();
+    const QString cwd = QDir::currentPath();
+    const QStringList candidates = {
+        dataDir,
+        QDir(dataDir).filePath(QStringLiteral("publish-pages")),
+        QDir(dataDir).filePath(QStringLiteral("../publish-pages")),
+        QDir(appDir).filePath(QStringLiteral("../../publish-pages")),
+        QDir(appDir).filePath(QStringLiteral("../publish-pages")),
+        QDir(cwd).filePath(QStringLiteral("publish-pages")),
+    };
+
+    for (const auto &candidate : candidates) {
+      const QString cleanPath = QDir::cleanPath(candidate);
+      if (QDir(cleanPath).exists(QStringLiteral(".git")) && QFileInfo::exists(QDir(cleanPath).filePath(QStringLiteral("site-data.json")))) {
+        return cleanPath;
+      }
+    }
+    return QString();
+  }
+
+  CommandResult runGit(const QString &workingDirectory, const QStringList &arguments, int timeoutMs = 30000) const {
+    QProcess process;
+    process.setWorkingDirectory(workingDirectory);
+    process.start(QStringLiteral("git"), arguments);
+    if (!process.waitForStarted(5000)) {
+      return {false, -1, QStringLiteral("无法启动 git，请确认 Git 已安装并在 PATH 中。")};
+    }
+    if (!process.waitForFinished(timeoutMs)) {
+      process.kill();
+      process.waitForFinished();
+      return {false, -1, QStringLiteral("Git 命令超时：git ") + arguments.join(QStringLiteral(" "))};
+    }
+
+    const QString output = QString::fromLocal8Bit(process.readAllStandardOutput()) +
+                           QString::fromLocal8Bit(process.readAllStandardError());
+    return {process.exitStatus() == QProcess::NormalExit && process.exitCode() == 0, process.exitCode(), output};
   }
 
   static QStringList defaultDataFileCandidates() {

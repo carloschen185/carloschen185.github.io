@@ -23,7 +23,7 @@ cmake --build editor-build
 
 还可以打开程序后点击“打开 JSON”选择文件。
 
-修改后点击“保存”，再把 `site-data.json` 推送到 GitHub Pages 仓库即可更新网站内容。
+修改后点击“保存并同步”，程序会保存 `site-data.json`，自动复制到 `publish-pages` 发布仓库，并执行 `git add`、`git commit`、`git push` 更新 GitHub Pages。没有内容变化时不会创建新提交。
 
 ## 外部库
 
