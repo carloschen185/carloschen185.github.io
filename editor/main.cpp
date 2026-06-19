@@ -211,9 +211,11 @@ private:
   QWidget *buildProjectsTab() {
     auto *page = new QWidget;
     auto *layout = new QVBoxLayout(page);
-    projectsTable_ = table({QStringLiteral("标题"), QStringLiteral("说明"), QStringLiteral("标签，用英文逗号分隔"), QStringLiteral("按钮，每行：文字 | 链接")});
-    layout->addWidget(hint(QStringLiteral("这里可以添加、删除和调整“想展示的东西”。按钮数量不限，在按钮列里每行写：按钮文字 | 链接。")));
-    layout->addWidget(withButtons(projectsTable_));
+    projectsTable_ = table({QStringLiteral("标题"), QStringLiteral("说明"), QStringLiteral("标签，用英文逗号分隔"), QStringLiteral("按钮，每行：文字 | 类型 | 目标")});
+    auto *addActionButton = new QPushButton(QStringLiteral("添加按钮到选中项目"));
+    connect(addActionButton, &QPushButton::clicked, this, [this] { addProjectAction(); });
+    layout->addWidget(hint(QStringLiteral("这里可以添加、删除和调整“想展示的东西”。先选中一行，再点“添加按钮到选中项目”；按钮数量不限，可选择打开链接、打开文件或 Markdown 页面。")));
+    layout->addWidget(withButtons(projectsTable_, addActionButton));
     return page;
   }
 
@@ -255,7 +257,7 @@ private:
     return widget;
   }
 
-  QWidget *withButtons(QTableWidget *tableWidget) const {
+  QWidget *withButtons(QTableWidget *tableWidget, QPushButton *extraButton = nullptr) {
     auto *box = new QWidget;
     auto *layout = new QVBoxLayout(box);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -271,6 +273,9 @@ private:
     buttonLayout->addWidget(remove);
     buttonLayout->addWidget(up);
     buttonLayout->addWidget(down);
+    if (extraButton) {
+      buttonLayout->addWidget(extraButton);
+    }
     buttonLayout->addStretch();
 
     connect(add, &QPushButton::clicked, tableWidget, [tableWidget] {
