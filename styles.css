@@ -318,6 +318,13 @@ h3 {
   margin-bottom: 28px;
 }
 
+.section-note {
+  max-width: 620px;
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 1.04rem;
+}
+
 .about-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
@@ -370,17 +377,26 @@ h3 {
 }
 
 .collection-grid,
-.project-grid,
-.games-grid {
+.project-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
 
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
 .collection-card,
-.project-card,
-.game-card {
+.project-card {
   min-height: 220px;
+  padding: 22px;
+}
+
+.game-card {
+  min-height: 250px;
   padding: 22px;
 }
 
@@ -482,7 +498,13 @@ h3 {
 
 
 .games-section {
+  padding-top: 46px;
   background: linear-gradient(180deg, rgba(255, 249, 233, 0.34), rgba(255, 226, 235, 0.5));
+}
+
+.games-heading {
+  align-items: start;
+  margin-bottom: 18px;
 }
 
 .game-card {

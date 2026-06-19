@@ -36,6 +36,7 @@ const defaultData = {
     projectTitle: "最近想展示的东西",
     gamesEyebrow: "Open Games",
     gamesTitle: "开源小游戏",
+    gamesNote: "从 GitHub 上挑来的可玩网页游戏，点开就能玩，也能去看源码。",
     contactEyebrow: "Contact",
     contactTitle: "来找我玩",
     footerBackToTopText: "回到顶部",
@@ -233,6 +234,7 @@ function normalizeData(rawData) {
     gameSection: {
       eyebrow: sections.gamesEyebrow,
       title: sections.gamesTitle,
+      note: sections.gamesNote,
     },
     contact: {
       eyebrow: sections.contactEyebrow,
@@ -507,6 +509,7 @@ function renderPage(rawData) {
   setText("[data-project-title]", data.projectSection.title);
   setText("[data-games-eyebrow]", data.gameSection.eyebrow);
   setText("[data-games-title]", data.gameSection.title);
+  setText("[data-games-note]", data.gameSection.note);
 
   setText("[data-contact-eyebrow]", data.contact.eyebrow);
   setText("[data-contact-title]", data.contact.title);
