@@ -13,17 +13,17 @@ cmake --build editor-build
 
 ## 使用
 
-启动时传入 JSON 路径：
+直接启动 exe 时，程序会自动从程序目录附近寻找 `site-data.json` 并把当前内容填进输入框。
+
+也可以手动传入 JSON 路径：
 
 ```powershell
 .\editor-build\site_info_editor.exe .\site-data.json
 ```
 
-也可以打开程序后点击“打开 JSON”选择文件。
+还可以打开程序后点击“打开 JSON”选择文件。
 
 修改后点击“保存”，再把 `site-data.json` 推送到 GitHub Pages 仓库即可更新网站内容。
-
-每个输入项左侧都会显示目前正在使用的值，例如“显示名称（当前：Carlos Chen）”。输入内容变化时，这个提示会同步刷新，方便确认改的是哪一项。
 
 ## 外部库
 
