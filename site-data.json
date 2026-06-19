@@ -1,73 +1,87 @@
 {
-  "person": {
-    "displayName": "Carlos Chen",
-    "shortName": "Carlos",
-    "brandMark": "C",
-    "username": "carloschen185",
-    "role": "电脑爱好者 / 工具折腾者",
-    "focus": "电脑 / 工程 / AI 工具",
-    "status": "继续折腾中",
-    "email": "carloschen185@163.com",
-    "github": "https://github.com/carloschen185",
-    "bilibili": "https://space.bilibili.com/3546372894624283",
-    "telegram": "https://t.me/carloschen185",
-    "heroIntro": "喜欢琢磨电脑、折腾有趣的小项目，也会把零散灵感慢慢收纳成可以分享的东西。",
-    "aboutText": "我是 Carlos Chen，一个热衷于琢磨电脑、尝试新工具、记录想法的人。这个主页会放我正在做的小项目、学习笔记，以及一些值得留下来的链接。",
-    "contactText": "如果你想聊项目、工具、学习路线，或者只是想打个招呼，可以从这些地方找到我。",
-    "footerText": "Made with a soft little mood."
-  },
-  "site": {
-    "themeColor": "#fff4cf",
-    "heroImage": "assets/hero-cute.jpg"
-  },
-  "hero": {
-    "eyebrow": "Hello, welcome",
-    "primaryButtonText": "看看作品",
-    "primaryButtonHref": "#projects",
-    "secondaryButtonText": "发封邮件",
-    "keywords": ["电脑", "创作", "学习", "一点点可爱"]
-  },
-  "sections": {
-    "collectionEyebrow": "Collection",
-    "collectionTitle": "小收藏夹",
-    "projectEyebrow": "Works",
-    "projectTitle": "最近想展示的东西",
-    "contactEyebrow": "Contact",
-    "contactTitle": "来找我玩",
-    "footerBackToTopText": "回到顶部"
-  },
-  "collectionItems": [
-    {
-      "icon": "01",
-      "title": "电脑折腾区",
-      "text": "把系统、工具、硬件和各种奇怪问题整理成可复用的小经验。"
+    "collectionItems": [
+        {
+            "icon": "01",
+            "text": "把系统、工具、硬件和各种奇怪问题整理成可复用的小经验。",
+            "title": "电脑折腾区"
+        },
+        {
+            "icon": "02",
+            "text": "记录最近看过、试过、想继续研究的技术点和 AI 工具。",
+            "title": "学习便签"
+        },
+        {
+            "icon": "03",
+            "text": "收纳一些暂时还没长成项目的想法，先让它们有地方住下。",
+            "title": "灵感抽屉"
+        }
+    ],
+    "hero": {
+        "eyebrow": "Hello, welcome",
+        "keywords": [
+            "电脑",
+            "创作",
+            "学习",
+            "一点点可爱"
+        ],
+        "primaryButtonHref": "#projects",
+        "primaryButtonText": "看看作品",
+        "secondaryButtonText": "发封邮件"
     },
-    {
-      "icon": "02",
-      "title": "学习便签",
-      "text": "记录最近看过、试过、想继续研究的技术点和 AI 工具。"
+    "person": {
+        "aboutText": "我是 Carlos Chen，一个热衷于琢磨电脑、尝试新工具、记录想法的人。这个主页会放我正在做的小项目、学习笔记，以及一些值得留下来的链接。",
+        "bilibili": "https://space.bilibili.com/3546372894624283",
+        "brandMark": "C",
+        "contactText": "如果你想聊项目、工具、学习路线，或者只是想打个招呼，可以从这些地方找到我。",
+        "displayName": "SYSTEM-MEMZ-C",
+        "email": "carloschen185@163.com",
+        "focus": "电脑 / 工程 / AI 工具",
+        "footerText": "Made with a soft little mood.",
+        "github": "https://github.com/carloschen185",
+        "heroIntro": "喜欢琢磨电脑、折腾有趣的小项目，也会把零散灵感慢慢收纳成可以分享的东西。",
+        "role": "电脑爱好者 / 工具折腾者",
+        "shortName": "水蜜桃",
+        "status": "继续折腾中",
+        "telegram": "https://t.me/carloschen185",
+        "username": "carloschen185"
     },
-    {
-      "icon": "03",
-      "title": "灵感抽屉",
-      "text": "收纳一些暂时还没长成项目的想法，先让它们有地方住下。"
+    "projects": [
+        {
+            "tags": [
+                "GitHub",
+                "Code"
+            ],
+            "text": "这里会持续放一些代码实验、脚本工具和正在打磨的小项目。",
+            "title": "GitHub 小仓库"
+        },
+        {
+            "tags": [
+                "Bilibili",
+                "Notes"
+            ],
+            "text": "把电脑折腾、学习过程和踩坑记录做成更容易看懂的内容。",
+            "title": "内容与分享"
+        },
+        {
+            "tags": [
+                "WIP",
+                "Idea"
+            ],
+            "text": "还在酝酿中。等它稍微成形，就把它搬到这个位置。",
+            "title": "下一件作品"
+        }
+    ],
+    "sections": {
+        "collectionEyebrow": "Collection",
+        "collectionTitle": "小收藏夹",
+        "contactEyebrow": "Contact",
+        "contactTitle": "来找我玩",
+        "footerBackToTopText": "回到顶部",
+        "projectEyebrow": "Works",
+        "projectTitle": "最近想展示的东西"
+    },
+    "site": {
+        "heroImage": "assets/hero-cute.jpg",
+        "themeColor": "#fff4cf"
     }
-  ],
-  "projects": [
-    {
-      "title": "GitHub 小仓库",
-      "text": "这里会持续放一些代码实验、脚本工具和正在打磨的小项目。",
-      "tags": ["GitHub", "Code"]
-    },
-    {
-      "title": "内容与分享",
-      "text": "把电脑折腾、学习过程和踩坑记录做成更容易看懂的内容。",
-      "tags": ["Bilibili", "Notes"]
-    },
-    {
-      "title": "下一件作品",
-      "text": "还在酝酿中。等它稍微成形，就把它搬到这个位置。",
-      "tags": ["WIP", "Idea"]
-    }
-  ]
 }
