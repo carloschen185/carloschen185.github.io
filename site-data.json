@@ -4,25 +4,28 @@
                                 "icon":  "01",
                                 "text":  "把系统、工具、硬件和各种奇怪问题整理成可复用的小经验。",
                                 "title":  "电脑折腾区",
-                                "detailMarkdown":  "### 电脑折腾区\n把系统、工具、硬件和各种奇怪问题整理成可复用的小经验。",
                                 "detailImage":  "",
-                                "detailVideo":  ""
+                                "detailVideo":  "",
+                                "id":  "computer",
+                                "markdownFile":  "content/collection/computer.md"
                             },
                             {
                                 "icon":  "02",
                                 "text":  "记录最近看过、试过、想继续研究的技术点和 AI 工具。",
                                 "title":  "学习便签",
-                                "detailMarkdown":  "### 学习便签\n记录最近看过、试过、想继续研究的技术点和 AI 工具。",
                                 "detailImage":  "",
-                                "detailVideo":  ""
+                                "detailVideo":  "",
+                                "id":  "notes",
+                                "markdownFile":  "content/collection/notes.md"
                             },
                             {
                                 "icon":  "03",
                                 "text":  "收纳一些暂时还没长成项目的想法，先让它们有地方住下。",
                                 "title":  "灵感抽屉",
-                                "detailMarkdown":  "### 灵感抽屉\n收纳一些暂时还没长成项目的想法，先让它们有地方住下。",
                                 "detailImage":  "",
-                                "detailVideo":  ""
+                                "detailVideo":  "",
+                                "id":  "ideas",
+                                "markdownFile":  "content/collection/ideas.md"
                             }
                         ],
     "hero":  {

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>按钮详情</title>
+    <meta name="description" content="按钮 Markdown 详情页">
+    <meta name="theme-color" content="#fff4cf">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body data-page="button-detail">
+    <header class="site-header" aria-label="详情页导航">
+      <a class="brand" href="./#top" aria-label="回到首页">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        <span data-detail-brand>水蜜桃</span>
+      </a>
+      <nav class="nav-links" aria-label="页面导航">
+        <a href="./#projects" data-detail-back>返回作品</a>
+        <a href="./#collection">收藏夹</a>
+        <a href="./#contact">联系</a>
+      </nav>
+    </header>
+
+    <main class="detail-page">
+      <section class="detail-hero" aria-labelledby="detail-title">
+        <p class="eyebrow">Markdown</p>
+        <h1 id="detail-title" data-detail-title>按钮详情</h1>
+        <p class="intro" data-detail-summary></p>
+      </section>
+
+      <article class="detail-panel">
+        <div class="markdown-body" data-detail-markdown></div>
+      </article>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

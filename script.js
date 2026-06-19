@@ -284,96 +284,45 @@ function markdownToHtml(markdown) {
   return html.join("");
 }
 
-function openCollectionDialog(item) {
-  const dialog = document.querySelector("[data-collection-dialog]");
-  if (!dialog) {
-    return;
-  }
-  setText("[data-dialog-title]", item.title);
-  const image = dialog.querySelector("[data-dialog-image]");
-  const video = dialog.querySelector("[data-dialog-video]");
-  const markdown = dialog.querySelector("[data-dialog-markdown]");
-  const detailText = item.detailMarkdown || item.text || "";
-
-  if (image) {
-    image.hidden = !item.detailImage;
-    image.src = item.detailImage || "";
-    image.alt = item.title ? `${item.title} 的图片` : "收藏夹图片";
-  }
-  if (video) {
-    video.hidden = !item.detailVideo;
-    video.src = item.detailVideo || "";
-  }
-  if (markdown) {
-    markdown.innerHTML = markdownToHtml(detailText);
-  }
-
-  if (typeof dialog.showModal === "function") {
-    dialog.showModal();
-  } else {
-    dialog.setAttribute("open", "");
-  }
-}
-
-function closeCollectionDialog() {
-  const dialog = document.querySelector("[data-collection-dialog]");
-  const video = dialog?.querySelector("[data-dialog-video]");
-  if (video) {
-    video.pause();
-  }
-  if (dialog?.open) {
-    dialog.close();
-  }
-}
-
-
-function setupCollectionDialog() {
-  const dialog = document.querySelector("[data-collection-dialog]");
-  const close = document.querySelector("[data-dialog-close]");
-  close?.addEventListener("click", closeCollectionDialog);
-  dialog?.addEventListener("click", (event) => {
-    if (event.target === dialog) {
-      closeCollectionDialog();
-    }
-  });
+function collectionDetailHref(item, index) {
+  const id = item.id || String(index);
+  return item.detailPage || `collection-detail.html?item=${encodeURIComponent(id)}`;
 }
 function renderCollection(items) {
   const container = document.querySelector('[data-render="collection"]');
   container.innerHTML = (items ?? [])
     .map(
       (item, index) => `
-        <article class="collection-card" role="button" tabindex="0" data-collection-index="${index}">
+        <a class="collection-card" href="${escapeHtml(collectionDetailHref(item, index))}">
           <span class="collection-icon" aria-hidden="true">${escapeHtml(item.icon)}</span>
           <div>
             <h3>${escapeHtml(item.title)}</h3>
             <p>${escapeHtml(item.text)}</p>
           </div>
-        </article>
+        </a>
       `,
     )
     .join("");
-
-  container.querySelectorAll("[data-collection-index]").forEach((card) => {
-    const open = () => openCollectionDialog(items[Number(card.dataset.collectionIndex)]);
-    card.addEventListener("click", open);
-    card.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        open();
-      }
-    });
-  });
 }
+function projectActionHref(action) {
+  if (action.type === "markdown") {
+    const file = action.markdownFile || action.href || "";
+    return `button-detail.html?title=${encodeURIComponent(action.label || "按钮详情")}&file=${encodeURIComponent(file)}`;
+  }
+  return action.href || action.file || "";
+}
+
 function renderProjectActions(actions) {
-  const visibleActions = (actions ?? []).filter((action) => action.label && action.href);
+  const visibleActions = (actions ?? []).filter((action) => action.label && projectActionHref(action));
   if (!visibleActions.length) {
     return "";
   }
   return `<div class="project-actions">${visibleActions
-    .map(
-      (action) =>
-        `<a class="project-action" href="${escapeHtml(action.href)}" target="_blank" rel="noreferrer">${escapeHtml(action.label)}</a>`,
-    )
+    .map((action) => {
+      const href = projectActionHref(action);
+      const target = action.type === "markdown" ? "_self" : "_blank";
+      return `<a class="project-action" href="${escapeHtml(href)}" target="${target}" rel="noreferrer">${escapeHtml(action.label)}</a>`;
+    })
     .join("")}</div>`;
 }
 
@@ -450,11 +399,88 @@ function renderPage(rawData) {
   renderKeywords(data.hero.keywords);
   renderFacts(data.about.facts);
   renderCollection(data.collectionItems);
-  setupCollectionDialog();
   renderProjects(data.projects);
   renderLinks(data.links);
 }
 
+
+function collectionItemFromUrl(items) {
+  const params = new URLSearchParams(window.location.search);
+  const requested = params.get("item") || "0";
+  return (
+    items.find((item) => item.id === requested) ||
+    items[Number(requested)] ||
+    items[0]
+  );
+}
+
+async function loadMarkdownFile(path, fallback) {
+  if (!path) {
+    return fallback || "";
+  }
+  try {
+    const response = await fetch(path, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(`${path} ${response.status}`);
+    }
+    return await response.text();
+  } catch (error) {
+    console.warn("Using fallback markdown because the markdown file could not be loaded.", error);
+    return fallback || "";
+  }
+}
+
+async function renderCollectionDetailPage(rawData) {
+  const data = normalizeData(rawData);
+  const item = collectionItemFromUrl(data.collectionItems);
+  if (!item) {
+    setText("[data-detail-title]", "没有找到这个收藏夹");
+    return;
+  }
+
+  document.title = `${item.title} - ${data.site.title}`;
+  setText("[data-detail-brand]", data.profile.brandName);
+  setText("[data-detail-title]", item.title);
+  setText("[data-detail-summary]", item.text);
+  setAttr("[data-detail-back]", "href", "./#collection");
+
+  const image = document.querySelector("[data-detail-image]");
+  if (image) {
+    image.hidden = !item.detailImage;
+    image.src = item.detailImage || "";
+    image.alt = item.title ? `${item.title} 的图片` : "收藏夹图片";
+  }
+
+  const video = document.querySelector("[data-detail-video]");
+  if (video) {
+    video.hidden = !item.detailVideo;
+    video.src = item.detailVideo || "";
+  }
+
+  const markdown = await loadMarkdownFile(item.markdownFile, item.detailMarkdown || item.text);
+  const body = document.querySelector("[data-detail-markdown]");
+  if (body) {
+    body.innerHTML = markdownToHtml(markdown);
+  }
+}
+
+async function renderButtonDetailPage() {
+  const params = new URLSearchParams(window.location.search);
+  const title = params.get("title") || "按钮详情";
+  const file = params.get("file") || "";
+
+  document.title = title;
+  setText("[data-detail-brand]", "水蜜桃");
+  setText("[data-detail-title]", title);
+  setText("[data-detail-summary]", "");
+  setAttr("[data-detail-back]", "href", "./#projects");
+
+  const markdown = await loadMarkdownFile(file, `### ${title}\n这里还没有内容。`);
+  const body = document.querySelector("[data-detail-markdown]");
+  if (body) {
+    body.innerHTML = markdownToHtml(markdown);
+  }
+}
 async function loadData() {
   try {
     const response = await fetch("site-data.json", { cache: "no-store" });
@@ -468,4 +494,10 @@ async function loadData() {
   }
 }
 
-loadData().then(renderPage);
+loadData().then((data) => {
+  if (document.body?.dataset.page === "collection-detail") {
+    renderCollectionDetailPage(data);
+  } else {
+    renderPage(data);
+  }
+});
