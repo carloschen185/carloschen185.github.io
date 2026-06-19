@@ -2,6 +2,9 @@
 #include <QAction>
 #include <QApplication>
 #include <QCoreApplication>
+#include <QCryptographicHash>
+#include <QDialog>
+#include <QDialogButtonBox>
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
@@ -13,6 +16,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QList>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMainWindow>
@@ -20,11 +24,14 @@
 #include <QProcess>
 #include <QPushButton>
 #include <QRegularExpression>
+#include <QSplitter>
 #include <QStatusBar>
 #include <QTableWidget>
 #include <QTabWidget>
+#include <QTextBrowser>
 #include <QTextEdit>
 #include <QToolBar>
+#include <QUrl>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -202,9 +209,11 @@ private:
   QWidget *buildCollectionTab() {
     auto *page = new QWidget;
     auto *layout = new QVBoxLayout(page);
-    collectionTable_ = table({QStringLiteral("图标/编号"), QStringLiteral("标题"), QStringLiteral("卡片说明"), QStringLiteral("Markdown 文件"), QStringLiteral("Markdown 内容"), QStringLiteral("图片路径"), QStringLiteral("视频路径")});
-    layout->addWidget(hint(QStringLiteral("这里可以添加、删除和调整收藏夹卡片。Markdown 内容会保存到对应 .md 文件；图片/视频填路径或 URL。")));
-    layout->addWidget(withButtons(collectionTable_));
+    collectionTable_ = table({QStringLiteral("图标/编号"), QStringLiteral("标题"), QStringLiteral("卡片说明"), QStringLiteral("Markdown 文件")});
+    auto *editMarkdownButton = new QPushButton(QStringLiteral("编辑选中 Markdown"));
+    connect(editMarkdownButton, &QPushButton::clicked, this, [this] { editCollectionMarkdown(); });
+    layout->addWidget(hint(QStringLiteral("这里可以添加、删除和调整收藏夹卡片。Markdown 内容请点“编辑选中 Markdown”单独编辑；插入本地图片或视频后，保存同步时会自动上传到仓库。")));
+    layout->addWidget(withButtons(collectionTable_, {editMarkdownButton}));
     return page;
   }
 
@@ -213,9 +222,11 @@ private:
     auto *layout = new QVBoxLayout(page);
     projectsTable_ = table({QStringLiteral("标题"), QStringLiteral("说明"), QStringLiteral("标签，用英文逗号分隔"), QStringLiteral("按钮，每行：文字 | 类型 | 目标")});
     auto *addActionButton = new QPushButton(QStringLiteral("添加按钮到选中项目"));
+    auto *editMarkdownButton = new QPushButton(QStringLiteral("编辑按钮 Markdown"));
     connect(addActionButton, &QPushButton::clicked, this, [this] { addProjectAction(); });
-    layout->addWidget(hint(QStringLiteral("这里可以添加、删除和调整“想展示的东西”。先选中一行，再点“添加按钮到选中项目”；按钮数量不限，可选择打开链接、打开文件或 Markdown 页面。")));
-    layout->addWidget(withButtons(projectsTable_, addActionButton));
+    connect(editMarkdownButton, &QPushButton::clicked, this, [this] { editProjectActionMarkdown(); });
+    layout->addWidget(hint(QStringLiteral("这里可以添加、删除和调整“想展示的东西”。先选中一行，再点“添加按钮到选中项目”；Markdown 按钮内容请点“编辑按钮 Markdown”单独编辑。")));
+    layout->addWidget(withButtons(projectsTable_, {addActionButton, editMarkdownButton}));
     return page;
   }
 
@@ -257,7 +268,7 @@ private:
     return widget;
   }
 
-  QWidget *withButtons(QTableWidget *tableWidget, QPushButton *extraButton = nullptr) {
+  QWidget *withButtons(QTableWidget *tableWidget, const QList<QPushButton *> &extraButtons = {}) {
     auto *box = new QWidget;
     auto *layout = new QVBoxLayout(box);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -273,8 +284,10 @@ private:
     buttonLayout->addWidget(remove);
     buttonLayout->addWidget(up);
     buttonLayout->addWidget(down);
-    if (extraButton) {
-      buttonLayout->addWidget(extraButton);
+    for (auto *extraButton : extraButtons) {
+      if (extraButton) {
+        buttonLayout->addWidget(extraButton);
+      }
     }
     buttonLayout->addStretch();
 
@@ -399,8 +412,10 @@ private:
       }
     }
 
+    copyContentDirectoryToPublishRepo(repoPath);
+
     auto status = runGit(repoPath, {QStringLiteral("status"), QStringLiteral("--short"), QStringLiteral("--"),
-                                    QStringLiteral("site-data.json")});
+                                    QStringLiteral("site-data.json"), QStringLiteral("content")});
     if (!status.ok) {
       return {false, QStringLiteral("检查 Git 状态失败：\n") + status.output};
     }
@@ -644,21 +659,148 @@ private:
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
       return QString();
     }
-    return QString::fromUtf8(file.readAll()).trimmed();
+    return QString::fromUtf8(file.readAll());
   }
 
   bool writeTextFile(const QString &relativePath, const QString &content) const {
+    const QString finalContent = relativePath.endsWith(QStringLiteral(".md"), Qt::CaseInsensitive)
+        ? rewriteMarkdownLocalMedia(relativePath, content)
+        : content;
     QFileInfo info(siteFilePath(relativePath));
     QDir().mkpath(info.absolutePath());
     QFile file(info.filePath());
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text)) {
       return false;
     }
-    file.write(content.toUtf8());
-    if (!content.endsWith(QStringLiteral("\n"))) {
+    file.write(finalContent.toUtf8());
+    if (!finalContent.endsWith(QStringLiteral("\n"))) {
       file.write("\n");
     }
     return true;
+  }
+
+  static QString cleanMarkdownTarget(QString target) {
+    target = target.trimmed();
+    if (target.startsWith(QStringLiteral("<")) && target.endsWith(QStringLiteral(">"))) {
+      target = target.mid(1, target.size() - 2).trimmed();
+    }
+    if ((target.startsWith(QStringLiteral("\"")) && target.endsWith(QStringLiteral("\""))) ||
+        (target.startsWith(QStringLiteral("'")) && target.endsWith(QStringLiteral("'")))) {
+      target = target.mid(1, target.size() - 2).trimmed();
+    }
+    return target;
+  }
+
+  static bool shouldSkipMarkdownTarget(const QString &target) {
+    QString clean = QDir::fromNativeSeparators(cleanMarkdownTarget(target));
+    QString lower = clean.toLower();
+    if (lower.startsWith(QStringLiteral("./"))) {
+      lower = lower.mid(2);
+    }
+    return lower.startsWith(QStringLiteral("http://")) || lower.startsWith(QStringLiteral("https://")) ||
+           lower.startsWith(QStringLiteral("data:")) || lower.startsWith(QStringLiteral("mailto:")) ||
+           lower.startsWith(QStringLiteral("#")) || lower.startsWith(QStringLiteral("content/")) ||
+           lower.startsWith(QStringLiteral("assets/"));
+  }
+
+  QString localFilePathForMarkdownTarget(const QString &rawTarget, const QString &markdownRelativePath) const {
+    const QString target = cleanMarkdownTarget(rawTarget);
+    if (target.isEmpty() || shouldSkipMarkdownTarget(target)) {
+      return QString();
+    }
+
+    QUrl url(target);
+    if (url.isLocalFile()) {
+      return QDir::cleanPath(url.toLocalFile());
+    }
+    if (QDir::isAbsolutePath(target)) {
+      return QDir::cleanPath(target);
+    }
+
+    const QFileInfo markdownInfo(siteFilePath(markdownRelativePath));
+    const QString relativeToMarkdown = markdownInfo.absoluteDir().filePath(target);
+    if (QFileInfo::exists(relativeToMarkdown)) {
+      return QDir::cleanPath(relativeToMarkdown);
+    }
+
+    const QString relativeToSite = siteFilePath(target);
+    if (QFileInfo::exists(relativeToSite)) {
+      return QDir::cleanPath(relativeToSite);
+    }
+    return QString();
+  }
+
+  static QString sanitizedAssetBaseName(const QFileInfo &info) {
+    QString base = info.completeBaseName().toLower();
+    base.replace(QRegularExpression(QStringLiteral("[^a-z0-9._-]+")), QStringLiteral("-"));
+    while (base.startsWith(QStringLiteral("-"))) {
+      base.remove(0, 1);
+    }
+    while (base.endsWith(QStringLiteral("-"))) {
+      base.chop(1);
+    }
+    return base.isEmpty() ? QStringLiteral("media") : base;
+  }
+
+  QString uploadedAssetPathForTarget(const QString &rawTarget, const QString &markdownRelativePath) const {
+    const QString localPath = localFilePathForMarkdownTarget(rawTarget, markdownRelativePath);
+    if (localPath.isEmpty()) {
+      return QString();
+    }
+
+    QFileInfo sourceInfo(localPath);
+    if (!sourceInfo.exists() || !sourceInfo.isFile()) {
+      return QString();
+    }
+
+    QFile source(sourceInfo.filePath());
+    QByteArray bytes;
+    if (source.open(QIODevice::ReadOnly)) {
+      bytes = source.readAll();
+    }
+    const QByteArray hashSource = bytes.isEmpty() ? sourceInfo.filePath().toUtf8() : bytes;
+    const QString hash = QString::fromLatin1(QCryptographicHash::hash(hashSource, QCryptographicHash::Sha1).toHex().left(10));
+    const QString suffix = sourceInfo.suffix().toLower();
+    const QString fileName = sanitizedAssetBaseName(sourceInfo) + QStringLiteral("-") + hash +
+        (suffix.isEmpty() ? QString() : QStringLiteral(".") + suffix);
+    const QString relativeUploadPath = QStringLiteral("content/uploads/") + fileName;
+    const QString absoluteUploadPath = siteFilePath(relativeUploadPath);
+
+    QDir().mkpath(QFileInfo(absoluteUploadPath).absolutePath());
+    if (QFileInfo::exists(absoluteUploadPath)) {
+      QFile::remove(absoluteUploadPath);
+    }
+    if (!QFile::copy(sourceInfo.filePath(), absoluteUploadPath)) {
+      return QString();
+    }
+    return relativeUploadPath;
+  }
+
+  QString replaceMarkdownTargets(QString text, const QRegularExpression &pattern, const QString &markdownRelativePath) const {
+    QString result;
+    qsizetype last = 0;
+    auto iterator = pattern.globalMatch(text);
+    while (iterator.hasNext()) {
+      const auto match = iterator.next();
+      result += text.mid(last, match.capturedStart() - last);
+      const QString replacement = uploadedAssetPathForTarget(match.captured(2), markdownRelativePath);
+      if (replacement.isEmpty()) {
+        result += match.captured(0);
+      } else {
+        result += match.captured(1) + replacement + match.captured(3);
+      }
+      last = match.capturedEnd();
+    }
+    result += text.mid(last);
+    return result;
+  }
+
+  QString rewriteMarkdownLocalMedia(const QString &relativePath, const QString &content) const {
+    QString rewritten = replaceMarkdownTargets(
+        content, QRegularExpression(QStringLiteral("(!?\\[[^\\]]*\\]\\()([^\\)\\n]+)(\\))")), relativePath);
+    rewritten = replaceMarkdownTargets(
+        rewritten, QRegularExpression(QStringLiteral("(\\bsrc\\s*=\\s*[\"'])([^\"']+)([\"'])"), QRegularExpression::CaseInsensitiveOption), relativePath);
+    return rewritten;
   }
   static void fillStringTable(QTableWidget *tableWidget, const QJsonArray &values) {
     tableWidget->setRowCount(0);
@@ -687,17 +829,15 @@ private:
       const auto object = values.at(index).toObject();
       const QString markdownFile = object.value(QStringLiteral("markdownFile")).toString(
           QStringLiteral("content/collection/item-%1.md").arg(index + 1));
-      const QString fileContent = readTextFile(markdownFile);
-      const QString markdownContent = fileContent.isEmpty() ? object.value(QStringLiteral("detailMarkdown")).toString() : fileContent;
+      if (!QFileInfo::exists(siteFilePath(markdownFile)) && object.contains(QStringLiteral("detailMarkdown"))) {
+        writeTextFile(markdownFile, object.value(QStringLiteral("detailMarkdown")).toString());
+      }
       const int row = collectionTable_->rowCount();
       collectionTable_->insertRow(row);
       setItemText(collectionTable_, row, 0, object.value(QStringLiteral("icon")).toString());
       setItemText(collectionTable_, row, 1, object.value(QStringLiteral("title")).toString());
       setItemText(collectionTable_, row, 2, object.value(QStringLiteral("text")).toString());
       setItemText(collectionTable_, row, 3, markdownFile);
-      setItemText(collectionTable_, row, 4, markdownContent);
-      setItemText(collectionTable_, row, 5, object.value(QStringLiteral("detailImage")).toString());
-      setItemText(collectionTable_, row, 6, object.value(QStringLiteral("detailVideo")).toString());
     }
   }
 
@@ -708,24 +848,22 @@ private:
       const QString title = itemText(collectionTable_, row, 1).trimmed();
       const QString textValue = itemText(collectionTable_, row, 2).trimmed();
       QString markdownFile = itemText(collectionTable_, row, 3).trimmed();
-      const QString markdownContent = itemText(collectionTable_, row, 4);
-      const QString detailImage = itemText(collectionTable_, row, 5).trimmed();
-      const QString detailVideo = itemText(collectionTable_, row, 6).trimmed();
-      if (icon.isEmpty() && title.isEmpty() && textValue.isEmpty() && markdownContent.trimmed().isEmpty()) {
+      if (icon.isEmpty() && title.isEmpty() && textValue.isEmpty() && markdownFile.isEmpty()) {
         continue;
       }
       if (markdownFile.isEmpty()) {
         markdownFile = QStringLiteral("content/collection/item-%1.md").arg(row + 1);
+        setItemText(collectionTable_, row, 3, markdownFile);
       }
-      const QString fallbackContent = QStringLiteral("### ") + title + QStringLiteral("\n") + textValue;
-      writeTextFile(markdownFile, markdownContent.trimmed().isEmpty() ? fallbackContent : markdownContent);
+      if (!QFileInfo::exists(siteFilePath(markdownFile))) {
+        const QString fallbackContent = QStringLiteral("### ") + title + QStringLiteral("\n") + textValue;
+        writeTextFile(markdownFile, fallbackContent);
+      }
       values.append(QJsonObject{{QStringLiteral("id"), QFileInfo(markdownFile).baseName()},
                                 {QStringLiteral("icon"), icon},
                                 {QStringLiteral("title"), title},
                                 {QStringLiteral("text"), textValue},
-                                {QStringLiteral("markdownFile"), markdownFile},
-                                {QStringLiteral("detailImage"), detailImage},
-                                {QStringLiteral("detailVideo"), detailVideo}});
+                                {QStringLiteral("markdownFile"), markdownFile}});
     }
     return values;
   }
@@ -759,6 +897,87 @@ private:
   }
 
 
+  bool editMarkdownContent(const QString &title, QString *content) {
+    if (!content) {
+      return false;
+    }
+
+    QDialog dialog(this);
+    dialog.setWindowTitle(title);
+    dialog.resize(980, 700);
+
+    auto *layout = new QVBoxLayout(&dialog);
+    auto *note = new QLabel(QStringLiteral("左边编辑 Markdown，右边实时预览。可以直接写 ![](本地图片路径) 或 [视频](本地视频路径)，保存同步时会自动上传。"), &dialog);
+    note->setWordWrap(true);
+    note->setStyleSheet(QStringLiteral("padding: 8px; border-radius: 8px; background: #fff4cf; color: #59424b;"));
+    layout->addWidget(note);
+
+    auto *splitter = new QSplitter(Qt::Horizontal, &dialog);
+    auto *editor = new QTextEdit(splitter);
+    auto *preview = new QTextBrowser(splitter);
+    editor->setAcceptRichText(false);
+    editor->setPlainText(*content);
+    preview->setOpenExternalLinks(true);
+    preview->setMarkdown(editor->toPlainText());
+    splitter->setStretchFactor(0, 3);
+    splitter->setStretchFactor(1, 2);
+    layout->addWidget(splitter, 1);
+
+    connect(editor, &QTextEdit::textChanged, preview, [editor, preview] {
+      preview->setMarkdown(editor->toPlainText());
+    });
+
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel, &dialog);
+    buttons->button(QDialogButtonBox::Save)->setText(QStringLiteral("保存 Markdown"));
+    buttons->button(QDialogButtonBox::Cancel)->setText(QStringLiteral("取消"));
+    connect(buttons, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    layout->addWidget(buttons);
+
+    if (dialog.exec() != QDialog::Accepted) {
+      return false;
+    }
+    *content = editor->toPlainText();
+    return true;
+  }
+
+  void ensureCollectionRowSelected() {
+    if (currentRow(collectionTable_) >= 0) {
+      return;
+    }
+    if (collectionTable_->rowCount() == 0) {
+      collectionTable_->insertRow(0);
+      for (int column = 0; column < collectionTable_->columnCount(); ++column) {
+        collectionTable_->setItem(0, column, new QTableWidgetItem);
+      }
+    }
+    collectionTable_->selectRow(0);
+  }
+
+  void editCollectionMarkdown() {
+    ensureCollectionRowSelected();
+    const int row = currentRow(collectionTable_);
+    if (row < 0) {
+      return;
+    }
+
+    QString markdownFile = itemText(collectionTable_, row, 3).trimmed();
+    if (markdownFile.isEmpty()) {
+      markdownFile = QStringLiteral("content/collection/item-%1.md").arg(row + 1);
+      setItemText(collectionTable_, row, 3, markdownFile);
+    }
+
+    const QString title = itemText(collectionTable_, row, 1).trimmed();
+    const QString textValue = itemText(collectionTable_, row, 2).trimmed();
+    QString markdown = readTextFile(markdownFile);
+    if (markdown.trimmed().isEmpty()) {
+      markdown = QStringLiteral("### ") + (title.isEmpty() ? QStringLiteral("收藏夹内容") : title) + QStringLiteral("\n") + textValue + QStringLiteral("\n");
+    }
+
+    if (editMarkdownContent(QStringLiteral("编辑收藏夹 Markdown：") + (title.isEmpty() ? markdownFile : title), &markdown)) {
+      writeTextFile(markdownFile, markdown);
+    }
+  }
   QString relativeToSitePath(const QString &path) const {
     const QString cleanPath = QDir::cleanPath(path);
     const QString root = QDir::cleanPath(siteDataDir());
@@ -822,7 +1041,11 @@ private:
       const QString defaultPath = QStringLiteral("content/buttons/%1.md").arg(slug);
       target = QInputDialog::getText(this, QStringLiteral("Markdown 文件"), QStringLiteral("保存到哪个 Markdown 文件？"), QLineEdit::Normal, defaultPath, &ok).trimmed();
       if (ok && !target.isEmpty()) {
-        const QString markdown = QInputDialog::getMultiLineText(this, QStringLiteral("Markdown 内容"), QStringLiteral("编辑这个按钮打开后的 Markdown 内容："), QStringLiteral("### ") + label + QStringLiteral("\n"), &ok);
+        QString markdown = readTextFile(target);
+        if (markdown.trimmed().isEmpty()) {
+          markdown = QStringLiteral("### ") + label + QStringLiteral("\n");
+        }
+        ok = editMarkdownContent(QStringLiteral("编辑按钮 Markdown：") + label, &markdown);
         if (ok) {
           writeTextFile(target, markdown);
         }
@@ -838,6 +1061,54 @@ private:
     }
     actionText += label + QStringLiteral(" | ") + type + QStringLiteral(" | ") + target;
     setItemText(projectsTable_, row, 3, actionText);
+  }
+  void editProjectActionMarkdown() {
+    ensureProjectRowSelected();
+    const int row = currentRow(projectsTable_);
+    if (row < 0) {
+      return;
+    }
+
+    const QJsonArray actions = actionsFromText(itemText(projectsTable_, row, 3));
+    QStringList choices;
+    QStringList files;
+    for (const auto &actionValue : actions) {
+      const auto action = actionValue.toObject();
+      if (action.value(QStringLiteral("type")).toString() != QStringLiteral("markdown")) {
+        continue;
+      }
+      const QString file = action.value(QStringLiteral("markdownFile")).toString().trimmed();
+      if (file.isEmpty()) {
+        continue;
+      }
+      const QString label = action.value(QStringLiteral("label")).toString(file).trimmed();
+      choices << (label + QStringLiteral("  →  ") + file);
+      files << file;
+    }
+
+    if (files.isEmpty()) {
+      QMessageBox::information(this, QStringLiteral("没有 Markdown 按钮"), QStringLiteral("选中的项目里还没有 Markdown 页面按钮。请先点“添加按钮到选中项目”创建一个。"));
+      return;
+    }
+
+    bool ok = true;
+    int selectedIndex = 0;
+    if (choices.size() > 1) {
+      const QString choice = QInputDialog::getItem(this, QStringLiteral("选择 Markdown 按钮"), QStringLiteral("要编辑哪一个按钮？"), choices, 0, false, &ok);
+      if (!ok || choice.isEmpty()) {
+        return;
+      }
+      selectedIndex = choices.indexOf(choice);
+    }
+
+    const QString markdownFile = files.value(selectedIndex);
+    QString markdown = readTextFile(markdownFile);
+    if (markdown.trimmed().isEmpty()) {
+      markdown = QStringLiteral("### ") + choices.value(selectedIndex).section(QStringLiteral("  →  "), 0, 0) + QStringLiteral("\n");
+    }
+    if (editMarkdownContent(QStringLiteral("编辑按钮 Markdown：") + choices.value(selectedIndex).section(QStringLiteral("  →  "), 0, 0), &markdown)) {
+      writeTextFile(markdownFile, markdown);
+    }
   }
   static QString actionsToText(const QJsonArray &actions) {
     QStringList lines;

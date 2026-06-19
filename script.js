@@ -236,11 +236,40 @@ function renderFacts(facts) {
     .join("");
 }
 
+function isVideoPath(value) {
+  return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(String(value || "").trim());
+}
+
+function isSafeMarkdownHref(value) {
+  return !/^\s*javascript:/i.test(String(value || ""));
+}
+
+function renderMarkdownMedia(alt, src) {
+  const cleanSrc = String(src || "").trim();
+  if (!cleanSrc || !isSafeMarkdownHref(cleanSrc)) {
+    return "";
+  }
+  if (isVideoPath(cleanSrc)) {
+    return `<video class="markdown-media" src="${cleanSrc}" controls></video>`;
+  }
+  return `<img class="markdown-media" src="${cleanSrc}" alt="${alt || "Markdown 图片"}" loading="lazy">`;
+}
+
 function renderInlineMarkdown(value) {
   return escapeHtml(value)
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, src) => renderMarkdownMedia(alt, src))
     .replace(/`([^`]+)`/g, "<code>$1</code>")
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+|#[^\s)]+|mailto:[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noreferrer">$1</a>');
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => {
+      const cleanHref = String(href || "").trim();
+      if (!cleanHref || !isSafeMarkdownHref(cleanHref)) {
+        return label;
+      }
+      if (isVideoPath(cleanHref)) {
+        return `<figure class="markdown-video"><video class="markdown-media" src="${cleanHref}" controls></video><figcaption>${label}</figcaption></figure>`;
+      }
+      return `<a href="${cleanHref}" target="_blank" rel="noreferrer">${label}</a>`;
+    });
 }
 
 function markdownToHtml(markdown) {
