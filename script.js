@@ -450,6 +450,7 @@ function renderPage(rawData) {
   renderKeywords(data.hero.keywords);
   renderFacts(data.about.facts);
   renderCollection(data.collectionItems);
+  setupCollectionDialog();
   renderProjects(data.projects);
   renderLinks(data.links);
 }
