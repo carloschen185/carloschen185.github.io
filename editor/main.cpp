@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QFormLayout>
+#include <QHash>
 #include <QHeaderView>
 #include <QHBoxLayout>
 #include <QJsonArray>
@@ -79,6 +80,8 @@ private:
 
   QTableWidget *collectionTable_ = nullptr;
   QTableWidget *projectsTable_ = nullptr;
+  QHash<QWidget *, QLabel *> currentLabels_;
+  QHash<QWidget *, QString> labelNames_;
 
   void buildUi() {
     auto *toolbar = addToolBar(QStringLiteral("文件"));
@@ -120,21 +123,21 @@ private:
     contactText_ = text(80);
     footerText_ = line();
 
-    form->addRow(QStringLiteral("显示名称"), displayName_);
-    form->addRow(QStringLiteral("短名称"), shortName_);
-    form->addRow(QStringLiteral("导航标记"), brandMark_);
-    form->addRow(QStringLiteral("常用 ID"), username_);
-    form->addRow(QStringLiteral("身份"), role_);
-    form->addRow(QStringLiteral("关注方向"), focus_);
-    form->addRow(QStringLiteral("状态"), status_);
-    form->addRow(QStringLiteral("邮箱"), email_);
-    form->addRow(QStringLiteral("GitHub"), github_);
-    form->addRow(QStringLiteral("Bilibili"), bilibili_);
-    form->addRow(QStringLiteral("Telegram"), telegram_);
-    form->addRow(QStringLiteral("首屏简介"), heroIntro_);
-    form->addRow(QStringLiteral("关于我介绍"), aboutText_);
-    form->addRow(QStringLiteral("联系区说明"), contactText_);
-    form->addRow(QStringLiteral("页脚文字"), footerText_);
+    addCurrentRow(form, QStringLiteral("显示名称"), displayName_);
+    addCurrentRow(form, QStringLiteral("短名称"), shortName_);
+    addCurrentRow(form, QStringLiteral("导航标记"), brandMark_);
+    addCurrentRow(form, QStringLiteral("常用 ID"), username_);
+    addCurrentRow(form, QStringLiteral("身份"), role_);
+    addCurrentRow(form, QStringLiteral("关注方向"), focus_);
+    addCurrentRow(form, QStringLiteral("状态"), status_);
+    addCurrentRow(form, QStringLiteral("邮箱"), email_);
+    addCurrentRow(form, QStringLiteral("GitHub"), github_);
+    addCurrentRow(form, QStringLiteral("Bilibili"), bilibili_);
+    addCurrentRow(form, QStringLiteral("Telegram"), telegram_);
+    addCurrentRow(form, QStringLiteral("首屏简介"), heroIntro_);
+    addCurrentRow(form, QStringLiteral("关于我介绍"), aboutText_);
+    addCurrentRow(form, QStringLiteral("联系区说明"), contactText_);
+    addCurrentRow(form, QStringLiteral("页脚文字"), footerText_);
 
     layout->addWidget(hint(QStringLiteral("这里只编辑一份个人资料。保存后，网页标题、导航、首屏、关于我、联系方式会自动同步使用这些信息。")));
     layout->addLayout(form);
@@ -153,12 +156,12 @@ private:
     primaryButtonHref_ = line();
     secondaryButtonText_ = line();
 
-    form->addRow(QStringLiteral("主题色"), themeColor_);
-    form->addRow(QStringLiteral("首屏图片路径"), heroImage_);
-    form->addRow(QStringLiteral("首屏小标题"), heroEyebrow_);
-    form->addRow(QStringLiteral("主按钮文字"), primaryButtonText_);
-    form->addRow(QStringLiteral("主按钮链接"), primaryButtonHref_);
-    form->addRow(QStringLiteral("邮件按钮文字"), secondaryButtonText_);
+    addCurrentRow(form, QStringLiteral("主题色"), themeColor_);
+    addCurrentRow(form, QStringLiteral("首屏图片路径"), heroImage_);
+    addCurrentRow(form, QStringLiteral("首屏小标题"), heroEyebrow_);
+    addCurrentRow(form, QStringLiteral("主按钮文字"), primaryButtonText_);
+    addCurrentRow(form, QStringLiteral("主按钮链接"), primaryButtonHref_);
+    addCurrentRow(form, QStringLiteral("邮件按钮文字"), secondaryButtonText_);
 
     keywordsTable_ = table({QStringLiteral("关键词")});
 
@@ -210,6 +213,61 @@ private:
     widget->setWordWrap(true);
     widget->setStyleSheet(QStringLiteral("padding: 10px; border-radius: 8px; background: #fff4cf; color: #59424b;"));
     return widget;
+  }
+
+  void addCurrentRow(QFormLayout *form, const QString &name, QWidget *field) {
+    auto *fieldLabel = new QLabel;
+    fieldLabel->setMinimumWidth(210);
+    fieldLabel->setWordWrap(true);
+    fieldLabel->setStyleSheet(QStringLiteral("font-weight: 700; color: #59424b;"));
+
+    labelNames_.insert(field, name);
+    currentLabels_.insert(field, fieldLabel);
+    form->addRow(fieldLabel, field);
+    refreshCurrentLabel(field);
+
+    if (auto *lineEdit = qobject_cast<QLineEdit *>(field)) {
+      connect(lineEdit, &QLineEdit::textChanged, this, [this, field] { refreshCurrentLabel(field); });
+    } else if (auto *textEdit = qobject_cast<QTextEdit *>(field)) {
+      connect(textEdit, &QTextEdit::textChanged, this, [this, field] { refreshCurrentLabel(field); });
+    }
+  }
+
+  QString currentFieldText(QWidget *field) const {
+    if (const auto *lineEdit = qobject_cast<const QLineEdit *>(field)) {
+      return lineEdit->text();
+    }
+    if (const auto *textEdit = qobject_cast<const QTextEdit *>(field)) {
+      return textEdit->toPlainText();
+    }
+    return QString();
+  }
+
+  QString compactCurrentText(QString value) const {
+    value = value.simplified();
+    if (value.isEmpty()) {
+      return QStringLiteral("未设置");
+    }
+    constexpr qsizetype maxLength = 28;
+    if (value.size() > maxLength) {
+      return value.left(maxLength) + QStringLiteral("...");
+    }
+    return value;
+  }
+
+  void refreshCurrentLabel(QWidget *field) {
+    auto *fieldLabel = currentLabels_.value(field, nullptr);
+    if (!fieldLabel) {
+      return;
+    }
+    const QString name = labelNames_.value(field);
+    fieldLabel->setText(name + QStringLiteral("（当前：") + compactCurrentText(currentFieldText(field)) + QStringLiteral("）"));
+  }
+
+  void refreshCurrentLabels() {
+    for (auto it = currentLabels_.cbegin(); it != currentLabels_.cend(); ++it) {
+      refreshCurrentLabel(it.key());
+    }
   }
 
   QTableWidget *table(const QStringList &headers) const {
@@ -410,6 +468,7 @@ private:
     fillObjectTable(collectionTable_, data_.value(QStringLiteral("collectionItems")).toArray(),
                     {QStringLiteral("icon"), QStringLiteral("title"), QStringLiteral("text")});
     fillProjectsTable(data_.value(QStringLiteral("projects")).toArray());
+    refreshCurrentLabels();
   }
 
   QJsonObject collectFromUi() const {

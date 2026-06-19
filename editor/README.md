@@ -23,6 +23,8 @@ cmake --build editor-build
 
 修改后点击“保存”，再把 `site-data.json` 推送到 GitHub Pages 仓库即可更新网站内容。
 
+每个输入项左侧都会显示目前正在使用的值，例如“显示名称（当前：Carlos Chen）”。输入内容变化时，这个提示会同步刷新，方便确认改的是哪一项。
+
 ## 外部库
 
 如果后续想接入外部库，可以在 `editor/CMakeLists.txt` 里添加，例如：
