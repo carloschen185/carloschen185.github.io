@@ -407,7 +407,8 @@ private:
       return {false, QStringLiteral("Git 提交失败：\n") + commit.output};
     }
 
-    auto push = runGit(repoPath, {QStringLiteral("push"), QStringLiteral("origin"), QStringLiteral("main")}, 120000);
+    const QString branchName = currentBranchName(repoPath);
+    auto push = runGit(repoPath, {QStringLiteral("push"), QStringLiteral("origin"), branchName}, 120000);
     if (!push.ok) {
       return {false, QStringLiteral("Git 推送失败：\n") + push.output};
     }
@@ -420,14 +421,16 @@ private:
     const QString dataDir = dataFile.absolutePath();
     const QString appDir = QCoreApplication::applicationDirPath();
     const QString cwd = QDir::currentPath();
-    const QStringList candidates = {
-        dataDir,
+    QStringList candidates = {
         QDir(dataDir).filePath(QStringLiteral("publish-pages")),
         QDir(dataDir).filePath(QStringLiteral("../publish-pages")),
         QDir(appDir).filePath(QStringLiteral("../../publish-pages")),
         QDir(appDir).filePath(QStringLiteral("../publish-pages")),
         QDir(cwd).filePath(QStringLiteral("publish-pages")),
     };
+    if (QFileInfo(dataDir).fileName() == QStringLiteral("publish-pages")) {
+      candidates.prepend(dataDir);
+    }
 
     for (const auto &candidate : candidates) {
       const QString cleanPath = QDir::cleanPath(candidate);
@@ -438,6 +441,14 @@ private:
     return QString();
   }
 
+  QString currentBranchName(const QString &repoPath) const {
+    auto branch = runGit(repoPath, {QStringLiteral("rev-parse"), QStringLiteral("--abbrev-ref"), QStringLiteral("HEAD")});
+    const QString branchName = branch.output.trimmed();
+    if (branch.ok && !branchName.isEmpty() && branchName != QStringLiteral("HEAD")) {
+      return branchName;
+    }
+    return QStringLiteral("main");
+  }
   CommandResult runGit(const QString &workingDirectory, const QStringList &arguments, int timeoutMs = 30000) const {
     QProcess process;
     process.setWorkingDirectory(workingDirectory);
