@@ -15221,10 +15221,19 @@ function copyTempDouble(ptr) {
   					compressed: parseInt(split[2], 10)
   				};
   			});
+  		},AssetURL:function (root, name) {
+  			root = root || '.';
+  			if (root.indexOf('http://') === 0 || root.indexOf('https://') === 0) {
+  				return root.replace(/\/$/, '') + '/assets/' + name;
+  			}
+  			if (root.charAt(0) === '.' || root.charAt(0) === '/') {
+  				return root.replace(/\/$/, '') + '/assets/' + name;
+  			}
+  			return 'http://' + root + '/assets/' + name;
   		},DownloadAsset:function (asset, onprogress, onload) {
   			var root = SYSC.GetCDN();
   			var name = asset.name.replace(/(.+\/|)(.+?)$/, '$1' + asset.checksum + '-$2');
-  			var url = 'http://' + root + '/assets/' + name;
+  			var url = SYSC.AssetURL(root, name);
   
   			SYS.DoXHR(url, {
   				dataType: 'arraybuffer',
@@ -15274,7 +15283,7 @@ function copyTempDouble(ptr) {
   			var fs_game = Pointer_stringify(_Cvar_VariableString(allocate(intArrayFromString('fs_game'), 'i8', ALLOC_STACK)));
   			var com_basegame = Pointer_stringify(_Cvar_VariableString(allocate(intArrayFromString('com_basegame'), 'i8', ALLOC_STACK)));
   			var mapname = Pointer_stringify(_Cvar_VariableString(allocate(intArrayFromString('mapname'), 'i8', ALLOC_STACK)));
-  			var url = 'http://' + fs_cdn + '/assets/manifest.json';
+  			var url = SYSC.AssetURL(fs_cdn, 'manifest.json');
   
   			function isInstaller(name) {
   				return SYSC.installers.some(function (installer) {

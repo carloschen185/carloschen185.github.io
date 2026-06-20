@@ -99,7 +99,7 @@
 			window.addEventListener('resize', resizeViewport);
 
 			// merge default args with query string args
-			var args = ['+set', 'fs_cdn', 'content.quakejs.com'];
+			var args = ['+set', 'fs_cdn', '.'];
 			args.push.apply(args, getQueryCommands());
 			ioq3.callMain(args);
 		};

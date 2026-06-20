@@ -149,7 +149,7 @@
     {
       "icon": "Q3",
       "title": "QuakeJS 雷神之锤3",
-      "text": "源码已放进本站仓库的 games/quakejs/source/，入口页由原项目生成；运行时仍会按 QuakeJS 机制加载公开内容服务器资源。",
+      "text": "入口、引擎和 QuakeJS 所需 demo/point-release 资源都放在本站仓库的 games/quakejs/ 下；首次打开会从本站下载资源到浏览器缓存。",
       "tags": [
         "FPS",
         "WebGL",
