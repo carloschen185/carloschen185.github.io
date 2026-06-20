@@ -247,6 +247,7 @@ function normalizeData(rawData) {
     },
     collectionItems: data.collectionItems ?? [],
     projects: data.projects ?? [],
+    games: data.games ?? [],
     links: linksFromPerson(person),
   };
 }
