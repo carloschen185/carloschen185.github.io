@@ -252,6 +252,16 @@ async function readRoom(env, roomCode) {
   const normalized = normalizeRoomCode(roomCode);
   const roomId = roomIdFromCode(normalized);
   const path = `chat-data/rooms/${roomId}.json`;
+  if (env.CHAT_ROOMS) {
+    const cached = await env.CHAT_ROOMS.get(roomKey(roomId), "json");
+    if (cached) {
+      return {
+        sha: "",
+        path,
+        data: normalizeRoomData(cached, normalized, roomId),
+      };
+    }
+  }
   const file = await readFile(env, path);
   if (!file) {
     return {
@@ -268,12 +278,81 @@ async function readRoom(env, roomCode) {
   return {
     sha: file.sha,
     path,
-    data: JSON.parse(file.text),
+    data: normalizeRoomData(JSON.parse(file.text), normalized, roomId),
   };
 }
 
-async function writeRoom(env, room, message) {
+function roomKey(roomId) {
+  return `room:${roomId}`;
+}
+
+function normalizeRoomData(data, roomCode, roomId) {
+  return {
+    roomCode: data.roomCode || roomCode,
+    roomId: data.roomId || roomId,
+    updatedAt: data.updatedAt || new Date().toISOString(),
+    messages: Array.isArray(data.messages) ? data.messages : [],
+  };
+}
+
+function mergeRoomData(current, incoming) {
+  const merged = normalizeRoomData(current || {}, incoming.roomCode, incoming.roomId);
+  const seen = new Set(merged.messages.map((message) => message.id));
+  for (const message of incoming.messages || []) {
+    if (!seen.has(message.id)) {
+      merged.messages.push(message);
+      seen.add(message.id);
+    } else {
+      merged.messages = merged.messages.map((existing) => (existing.id === message.id ? { ...existing, ...message } : existing));
+    }
+  }
+  merged.messages.sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
+  merged.updatedAt = [merged.updatedAt, incoming.updatedAt].filter(Boolean).sort().at(-1) || new Date().toISOString();
+  return merged;
+}
+
+async function saveRoomToLiveStore(env, room) {
   room.data.updatedAt = new Date().toISOString();
+  if (env.CHAT_ROOMS) {
+    await env.CHAT_ROOMS.put(roomKey(room.data.roomId), JSON.stringify(room.data));
+  }
+}
+
+async function syncRoomToGithub(env, room, message) {
+  let lastError = null;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      const current = await readFile(env, room.path);
+      const currentData = current ? JSON.parse(current.text) : null;
+      const merged = currentData ? mergeRoomData(currentData, room.data) : room.data;
+      await writeFile(
+        env,
+        room.path,
+        textToBase64(JSON.stringify(merged, null, 2)),
+        message,
+        current?.sha,
+      );
+      return;
+    } catch (error) {
+      lastError = error;
+      await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+    }
+  }
+  throw lastError;
+}
+
+async function persistRoom(env, room, message, ctx) {
+  await saveRoomToLiveStore(env, room);
+  const sync = syncRoomToGithub(env, room, message).catch((error) => console.error("GitHub chat sync failed", error));
+  if (ctx?.waitUntil) {
+    ctx.waitUntil(sync);
+  } else {
+    await sync;
+  }
+}
+
+async function writeRoom(env, room, message) {
+  await saveRoomToLiveStore(env, room);
   return writeFile(
     env,
     room.path,
@@ -309,7 +388,7 @@ async function loginAdmin(request, env) {
   return json(await createAdminToken(env), 200, env);
 }
 
-async function postMessage(request, env, roomCode) {
+async function postMessage(request, env, roomCode, ctx) {
   const room = await readRoom(env, roomCode);
   const form = await request.formData();
   const id = crypto.randomUUID();
@@ -347,11 +426,28 @@ async function postMessage(request, env, roomCode) {
     file: fileInfo,
     createdAt: new Date().toISOString(),
   });
-  await writeRoom(env, room, `chat: add message to ${room.data.roomCode}`);
+  await persistRoom(env, room, `chat: add message to ${room.data.roomCode}`, ctx);
   return json({ ok: true, message: room.data.messages.at(-1) }, 201, env);
 }
 
 async function listRooms(env) {
+  if (env.CHAT_ROOMS) {
+    const listing = await env.CHAT_ROOMS.list({ prefix: "room:" });
+    const rooms = [];
+    for (const key of listing.keys) {
+      const data = await env.CHAT_ROOMS.get(key.name, "json");
+      if (!data) {
+        continue;
+      }
+      rooms.push({
+        roomCode: data.roomCode,
+        updatedAt: data.updatedAt,
+        count: Array.isArray(data.messages) ? data.messages.length : 0,
+      });
+    }
+    rooms.sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
+    return rooms;
+  }
   const response = await githubFetch(env, `/contents/chat-data/rooms?ref=${encodeURIComponent(env.GITHUB_BRANCH || "main")}`);
   if (response.status === 404) {
     return [];
@@ -380,18 +476,20 @@ async function listRooms(env) {
 async function deleteMessage(env, roomCode, messageId) {
   const room = await readRoom(env, roomCode);
   room.data.messages = room.data.messages.filter((message) => message.id !== messageId);
-  await writeRoom(env, room, `chat: delete message in ${room.data.roomCode}`);
+  await saveRoomToLiveStore(env, room);
+  await syncRoomToGithub(env, room, `chat: delete message in ${room.data.roomCode}`);
   return json({ ok: true }, 200, env);
 }
 
 async function clearRoom(env, roomCode) {
   const room = await readRoom(env, roomCode);
   room.data.messages = [];
-  await writeRoom(env, room, `chat: clear room ${room.data.roomCode}`);
+  await saveRoomToLiveStore(env, room);
+  await syncRoomToGithub(env, room, `chat: clear room ${room.data.roomCode}`);
   return json({ ok: true }, 200, env);
 }
 
-async function handleRequest(request, env) {
+async function handleRequest(request, env, ctx) {
   if (request.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: securityHeaders(env) });
   }
@@ -406,7 +504,7 @@ async function handleRequest(request, env) {
       return json({ roomCode: room.data.roomCode, messages: room.data.messages || [] }, 200, env);
     }
     if (request.method === "POST") {
-      return postMessage(request, env, roomCode);
+      return postMessage(request, env, roomCode, ctx);
     }
   }
 
@@ -435,9 +533,9 @@ async function handleRequest(request, env) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     try {
-      return await handleRequest(request, env);
+      return await handleRequest(request, env, ctx);
     } catch (error) {
       if (error instanceof Response) {
         return error;

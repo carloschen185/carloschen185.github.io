@@ -199,6 +199,12 @@
   background: #fff;
 }
 
+.chat-compose button:disabled {
+  cursor: progress;
+  opacity: 0.72;
+  transform: none;
+}
+
 .file-picker input {
   position: absolute;
   width: 1px;

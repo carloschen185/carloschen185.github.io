@@ -8,6 +8,7 @@ const state = {
   nickname: localStorage.getItem("chat.nickname") || "",
   messages: [],
   timer: 0,
+  sending: false,
 };
 
 const joinView = document.querySelector('[data-view="join"]');
@@ -118,6 +119,9 @@ async function loadMessages() {
 
 async function sendMessage(event) {
   event.preventDefault();
+  if (state.sending) {
+    return;
+  }
   if (!requireApi()) {
     return;
   }
@@ -131,26 +135,42 @@ async function sendMessage(event) {
     return;
   }
 
-  const formData = new FormData();
-  formData.set("sender", state.nickname || "匿名");
-  formData.set("text", text);
-  if (file) {
-    formData.set("file", file);
+  const sendButton = composeForm.querySelector('button[type="submit"]');
+  const originalButtonText = sendButton?.textContent || "发送";
+  state.sending = true;
+  if (sendButton) {
+    sendButton.disabled = true;
+    sendButton.textContent = file ? "上传中..." : "发送中...";
   }
 
-  const response = await fetch(apiUrl(`/api/rooms/${encodeURIComponent(state.room)}/messages`), {
-    method: "POST",
-    body: formData,
-  });
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(error || `发送失败：${response.status}`);
+  try {
+    const formData = new FormData();
+    formData.set("sender", state.nickname || "匿名");
+    formData.set("text", text);
+    if (file) {
+      formData.set("file", file);
+    }
+
+    const response = await fetch(apiUrl(`/api/rooms/${encodeURIComponent(state.room)}/messages`), {
+      method: "POST",
+      body: formData,
+    });
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error || `发送失败：${response.status}`);
+    }
+    composeForm.reset();
+    if (fileName) {
+      fileName.textContent = "没有选择文件";
+    }
+    await loadMessages();
+  } finally {
+    state.sending = false;
+    if (sendButton) {
+      sendButton.disabled = false;
+      sendButton.textContent = originalButtonText;
+    }
   }
-  composeForm.reset();
-  if (fileName) {
-    fileName.textContent = "没有选择文件";
-  }
-  await loadMessages();
 }
 
 function enterRoom(room, nickname) {
