@@ -30,7 +30,7 @@ wrangler secret put CHAT_SESSION_SECRET
 
 ## 部署后
 
-把 Worker 地址填进根目录的 `chat-config.js`：
+把 Worker 地址填进根目录的 `chat-config.js`。这是一次性部署配置，不会再让访客或后台管理员在页面里手动输入：
 
 ```js
 window.SITE_CHAT_CONFIG = {

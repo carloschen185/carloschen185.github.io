@@ -1,5 +1,4 @@
 const defaultApi = String(window.SITE_CHAT_CONFIG?.apiBase || "").replace(/\/$/, "");
-const apiInput = document.querySelector("[data-admin-api]");
 const passwordInput = document.querySelector("[data-admin-password]");
 const loginPanel = document.querySelector("[data-admin-login]");
 const loginStatus = document.querySelector("[data-admin-login-status]");
@@ -11,7 +10,7 @@ let currentRoom = "";
 let currentMessages = [];
 
 function getApiBase() {
-  return String(localStorage.getItem("chat.admin.api") || defaultApi || "").replace(/\/$/, "");
+  return defaultApi;
 }
 
 function getAdminToken() {
@@ -50,7 +49,7 @@ async function adminFetch(path, options = {}) {
   const apiBase = getApiBase();
   const token = getAdminToken();
   if (!apiBase) {
-    throw new Error("还没有填写 Worker API 地址。");
+    throw new Error("聊天室后端还没有配置好，请先完成网站聊天后端配置。");
   }
   if (!token) {
     throw new Error("请先登录后台。");
@@ -88,10 +87,10 @@ function downloadText(filename, text) {
 }
 
 async function loginAdmin() {
-  const apiBase = String(apiInput.value || "").trim().replace(/\/$/, "");
+  const apiBase = getApiBase();
   const password = passwordInput.value;
   if (!apiBase) {
-    setLoginStatus("先填写 Worker API 地址。");
+    setLoginStatus("聊天室后端还没有配置好，请先完成网站聊天后端配置。");
     return;
   }
   if (!password) {
@@ -99,7 +98,6 @@ async function loginAdmin() {
     return;
   }
 
-  localStorage.setItem("chat.admin.api", apiBase);
   setLoginStatus("正在验证密码...");
   const response = await fetch(`${apiBase}/api/admin/login`, {
     method: "POST",
@@ -247,7 +245,6 @@ document.querySelector("[data-clear-room]")?.addEventListener("click", async () 
   await loadRooms();
 });
 
-apiInput.value = getApiBase();
 if (getAdminToken()) {
   showAdminApp(true);
   loadRooms().catch((error) => {
