@@ -111,9 +111,9 @@
                      "footerBackToTopText":  "回到顶部",
                      "projectEyebrow":  "Works",
                      "projectTitle":  "最近想展示的东西",
-                     "gamesEyebrow":  "Open Games",
+                     "gamesEyebrow":  "网页游戏",
                      "gamesTitle":  "开源小游戏",
-                     "gamesNote":  "从 GitHub 上挑来的可玩网页游戏，点开就能玩，也能去看源码。"
+                     "gamesNote":  "这些都是可以直接打开玩的网页游戏，按钮点下去就开始；源码也放在 GitHub 上。"
                  },
     "site":  {
                  "heroImage":  "assets/hero-cute.jpg",
@@ -122,55 +122,55 @@
     "games":  [
                   {
                       "icon":  "MC",
-                      "title":  "WebMC",
-                      "text":  "在浏览器里跑的 Minecraft 客户端概念验证，点开就能去 WebMC 的在线 demo。",
+                      "title":  "网页方块世界",
+                      "text":  "WebMC 原版需要等待代理，容易卡住；这里换成无需代理的 Minecrust，打开就能玩方块世界。",
                       "tags":  [
-                                   "Minecraft",
-                                   "3D",
-                                   "MIT"
+                                   "方块世界",
+                                   "浏览器",
+                                   "无需代理"
                                ],
-                      "playUrl":  "https://webmc.js.org/",
-                      "sourceUrl":  "https://github.com/michaljaz/webmc",
-                      "license":  "MIT"
+                      "playUrl":  "https://aykamko.github.io/minecrust/",
+                      "sourceUrl":  "https://github.com/aykamko/minecrust",
+                      "license":  "开源项目"
                   },
                   {
                       "icon":  "48",
-                      "title":  "2048",
-                      "text":  "经典滑块合成小游戏，轻量、耐玩，打开就能摸一把。",
+                      "title":  "数字方块 2048",
+                      "text":  "滑动数字方块，把相同数字合成到 2048。简单、耐玩、很容易再来一局。",
                       "tags":  [
-                                   "Puzzle",
-                                   "JavaScript",
-                                   "MIT"
+                                   "益智",
+                                   "数字",
+                                   "MIT 许可"
                                ],
                       "playUrl":  "https://gabrielecirulli.github.io/2048/",
                       "sourceUrl":  "https://github.com/gabrielecirulli/2048",
-                      "license":  "MIT"
+                      "license":  "MIT 许可"
                   },
                   {
-                      "icon":  "HX",
-                      "title":  "Hextris",
-                      "text":  "快节奏六边形消除游戏，像 Tetris 但更容易让人手忙脚乱。",
+                      "icon":  "六",
+                      "title":  "六边消除",
+                      "text":  "围绕六边形中心旋转方块，快速消除同色块，节奏比普通俄罗斯方块更紧张。",
                       "tags":  [
-                                   "Puzzle",
-                                   "HTML5",
-                                   "GPL-3"
+                                   "益智",
+                                   "反应",
+                                   "GPL-3 许可"
                                ],
                       "playUrl":  "https://hextris.github.io/hextris/",
                       "sourceUrl":  "https://github.com/Hextris/hextris",
-                      "license":  "GPL-3.0-or-later"
+                      "license":  "GPL-3 许可"
                   },
                   {
-                      "icon":  "DR",
-                      "title":  "A Dark Room",
-                      "text":  "极简文字冒险，从点燃火堆开始慢慢展开世界。",
+                      "icon":  "暗",
+                      "title":  "暗室冒险",
+                      "text":  "从一间黑暗小屋和一堆火开始，慢慢探索一个极简文字冒险世界。",
                       "tags":  [
-                                   "Text",
-                                   "Adventure",
-                                   "MPL-2"
+                                   "文字冒险",
+                                   "探索",
+                                   "MPL-2 许可"
                                ],
                       "playUrl":  "https://doublespeakgames.github.io/adarkroom/",
                       "sourceUrl":  "https://github.com/doublespeakgames/adarkroom",
-                      "license":  "MPL-2.0"
+                      "license":  "MPL-2 许可"
                   }
               ]
 }
