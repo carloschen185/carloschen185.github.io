@@ -122,16 +122,16 @@
     "games":  [
                   {
                       "icon":  "MC",
-                      "title":  "网页方块世界",
-                      "text":  "WebMC 原版需要等待代理，容易卡住；这里换成无需代理的 Minecrust，打开就能玩方块世界。",
+                      "title":  "原版 MC Classic",
+                      "text":  "官方浏览器版 Minecraft Classic，打开就能玩最早期的原版 MC；需要键盘和支持 WebGL/WebRTC 的浏览器。",
                       "tags":  [
-                                   "方块世界",
-                                   "浏览器",
-                                   "无需代理"
+                                   "原版 MC",
+                                   "官方经典版",
+                                   "浏览器"
                                ],
-                      "playUrl":  "https://aykamko.github.io/minecrust/",
-                      "sourceUrl":  "https://github.com/aykamko/minecrust",
-                      "license":  "开源项目"
+                      "playUrl":  "https://classic.minecraft.net/",
+                      "sourceUrl":  "",
+                      "license":  "官方经典版"
                   },
                   {
                       "icon":  "48",
