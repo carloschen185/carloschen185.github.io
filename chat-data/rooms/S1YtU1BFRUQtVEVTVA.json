@@ -1,0 +1,14 @@
+{
+  "roomCode": "KV-SPEED-TEST",
+  "roomId": "S1YtU1BFRUQtVEVTVA",
+  "updatedAt": "2026-06-20T10:33:32.579Z",
+  "messages": [
+    {
+      "id": "e12b593d-ab0f-4e20-8cb4-9e37f9281d49",
+      "sender": "Codex",
+      "text": "KV fast message one cf289db0-48bf-4311-bd8a-62ef9249daac",
+      "file": null,
+      "createdAt": "2026-06-20T10:33:32.579Z"
+    }
+  ]
+}
