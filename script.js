@@ -465,6 +465,26 @@ function renderGames(games) {
     )
     .join("");
 }
+
+function renderGameButtons(games) {
+  const container = document.querySelector('[data-render="game-buttons"]');
+  if (!container) {
+    return;
+  }
+
+  const playableGames = (games ?? []).filter((game) => game.title && game.playUrl);
+  container.innerHTML = playableGames
+    .map(
+      (game) => `
+        <a class="game-play-button" href="${escapeHtml(game.playUrl)}" target="_blank" rel="noreferrer">
+          <span aria-hidden="true">${escapeHtml(game.icon || "▶")}</span>
+          ${escapeHtml(game.title)}
+        </a>
+      `,
+    )
+    .join("");
+}
+
 function renderLinks(links) {
   const container = document.querySelector('[data-render="links"]');
   container.innerHTML = (links ?? [])
@@ -521,6 +541,8 @@ function renderPage(rawData) {
   renderFacts(data.about.facts);
   renderCollection(data.collectionItems);
   renderProjects(data.projects);
+  renderGameButtons(data.games);
+  renderGames(data.games);
   renderLinks(data.links);
 }
 

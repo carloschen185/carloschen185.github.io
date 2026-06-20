@@ -507,6 +507,48 @@ h3 {
   margin-bottom: 18px;
 }
 
+.game-launcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto 18px;
+}
+
+.game-play-button {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(60, 45, 54, 0.14);
+  border-radius: 8px;
+  padding: 10px 15px;
+  background: #3c2d36;
+  color: #fff9e9;
+  font-weight: 900;
+  box-shadow: 0 10px 24px rgba(60, 45, 54, 0.16);
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.game-play-button span {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--pink), var(--butter));
+  color: #fff;
+  font-size: 0.82rem;
+}
+
+.game-play-button:hover,
+.game-play-button:focus-visible {
+  border-color: rgba(217, 93, 134, 0.5);
+  background: #4a3943;
+  outline: none;
+  transform: translateY(-2px);
+}
+
 .game-card {
   position: relative;
   display: flex;
@@ -733,6 +775,7 @@ h3 {
   .about-layout,
   .collection-grid,
   .project-grid,
+  .game-launcher,
   .games-grid,
   .contact-panel,
   .site-footer {
@@ -753,6 +796,7 @@ h3 {
   }
 
   .button,
+  .game-play-button,
   .contact-links a {
     width: 100%;
   }
