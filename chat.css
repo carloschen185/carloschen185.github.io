@@ -224,6 +224,13 @@
   gap: 18px;
 }
 
+.admin-login-panel {
+  display: grid;
+  gap: 14px;
+  max-width: 520px;
+  margin: 0 auto 24px;
+}
+
 .admin-panel {
   border: 1px solid var(--line);
   border-radius: 8px;

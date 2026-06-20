@@ -1,11 +1,22 @@
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
+const loginFailures = new Map();
 
 function corsHeaders(env) {
   return {
     "Access-Control-Allow-Origin": env.ALLOWED_ORIGIN || "*",
     "Access-Control-Allow-Methods": "GET,POST,DELETE,OPTIONS",
-    "Access-Control-Allow-Headers": "content-type,x-admin-key",
+    "Access-Control-Allow-Headers": "content-type,authorization",
+    "Vary": "Origin",
+  };
+}
+
+function securityHeaders(env) {
+  return {
+    ...corsHeaders(env),
+    "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
   };
 }
 
@@ -14,7 +25,7 @@ function json(data, status = 200, env = {}) {
     status,
     headers: {
       "content-type": "application/json;charset=utf-8",
-      ...corsHeaders(env),
+      ...securityHeaders(env),
     },
   });
 }
@@ -24,7 +35,7 @@ function text(data, status = 200, env = {}) {
     status,
     headers: {
       "content-type": "text/plain;charset=utf-8",
-      ...corsHeaders(env),
+      ...securityHeaders(env),
     },
   });
 }
@@ -35,6 +46,103 @@ function requiredEnv(env, name) {
     throw new Error(`Missing env: ${name}`);
   }
   return value;
+}
+
+function constantTimeEqual(a, b) {
+  const left = encoder.encode(String(a));
+  const right = encoder.encode(String(b));
+  let diff = left.length ^ right.length;
+  const length = Math.max(left.length, right.length);
+  for (let index = 0; index < length; index += 1) {
+    diff |= (left[index] || 0) ^ (right[index] || 0);
+  }
+  return diff === 0;
+}
+
+function base64UrlFromBytes(bytes) {
+  return bytesToBase64(bytes).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
+}
+
+function base64UrlFromString(value) {
+  return base64UrlFromBytes(encoder.encode(value));
+}
+
+function base64UrlToString(value) {
+  const padded = value.replaceAll("-", "+").replaceAll("_", "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
+  const binary = atob(padded);
+  const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  return decoder.decode(bytes);
+}
+
+async function hmacSignature(env, value) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(requiredEnv(env, "CHAT_SESSION_SECRET")),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  return new Uint8Array(await crypto.subtle.sign("HMAC", key, encoder.encode(value)));
+}
+
+async function createAdminToken(env) {
+  const now = Math.floor(Date.now() / 1000);
+  const ttl = Number(env.ADMIN_SESSION_SECONDS || 7200);
+  const payload = {
+    sub: "admin",
+    iat: now,
+    exp: now + ttl,
+    nonce: crypto.randomUUID(),
+  };
+  const body = base64UrlFromString(JSON.stringify(payload));
+  const signature = base64UrlFromBytes(await hmacSignature(env, body));
+  return {
+    token: `${body}.${signature}`,
+    expiresAt: new Date(payload.exp * 1000).toISOString(),
+  };
+}
+
+async function verifyAdminToken(env, token) {
+  const [body, signature] = String(token || "").split(".");
+  if (!body || !signature) {
+    return false;
+  }
+  const expected = base64UrlFromBytes(await hmacSignature(env, body));
+  if (!constantTimeEqual(signature, expected)) {
+    return false;
+  }
+  const payload = JSON.parse(base64UrlToString(body));
+  return payload.sub === "admin" && Number(payload.exp || 0) > Math.floor(Date.now() / 1000);
+}
+
+function loginKey(request) {
+  const ip = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for") || "unknown";
+  return ip.split(",")[0].trim();
+}
+
+function checkLoginThrottle(request, env) {
+  const key = loginKey(request);
+  const now = Date.now();
+  const windowMs = Number(env.ADMIN_LOGIN_WINDOW_MS || 15 * 60 * 1000);
+  const maxFailures = Number(env.ADMIN_LOGIN_MAX_FAILURES || 8);
+  const current = loginFailures.get(key);
+  if (current && now - current.firstAt <= windowMs && current.count >= maxFailures) {
+    throw new Response("Too many login attempts", { status: 429, headers: securityHeaders(env) });
+  }
+  if (!current || now - current.firstAt > windowMs) {
+    loginFailures.set(key, { count: 0, firstAt: now });
+  }
+  return key;
+}
+
+function recordLoginFailure(key) {
+  const current = loginFailures.get(key) || { count: 0, firstAt: Date.now() };
+  current.count += 1;
+  loginFailures.set(key, current);
+}
+
+function recordLoginSuccess(key) {
+  loginFailures.delete(key);
 }
 
 function normalizeRoomCode(value) {
@@ -69,7 +177,7 @@ function githubBase(env) {
 }
 
 async function githubFetch(env, path, options = {}) {
-  const response = await fetch(`${githubBase(env)}${path}`, {
+  return fetch(`${githubBase(env)}${path}`, {
     ...options,
     headers: {
       "accept": "application/vnd.github+json",
@@ -79,7 +187,6 @@ async function githubFetch(env, path, options = {}) {
       ...(options.headers || {}),
     },
   });
-  return response;
 }
 
 function bytesToBase64(bytes) {
@@ -98,6 +205,10 @@ function base64ToText(base64) {
 
 function textToBase64(value) {
   return bytesToBase64(encoder.encode(value));
+}
+
+function encodeURIComponentPath(path) {
+  return path.split("/").map(encodeURIComponent).join("/");
 }
 
 async function readFile(env, path) {
@@ -137,10 +248,6 @@ async function writeFile(env, path, contentBase64, message, sha) {
   return response.json();
 }
 
-function encodeURIComponentPath(path) {
-  return path.split("/").map(encodeURIComponent).join("/");
-}
-
 async function readRoom(env, roomCode) {
   const normalized = normalizeRoomCode(roomCode);
   const roomId = roomIdFromCode(normalized);
@@ -176,11 +283,11 @@ async function writeRoom(env, room, message) {
   );
 }
 
-function assertAdmin(request, env) {
-  const expected = requiredEnv(env, "CHAT_ADMIN_KEY");
-  const actual = request.headers.get("x-admin-key") || "";
-  if (!actual || actual !== expected) {
-    throw new Response("Unauthorized", { status: 401, headers: corsHeaders(env) });
+async function assertAdmin(request, env) {
+  const header = request.headers.get("authorization") || "";
+  const token = header.startsWith("Bearer ") ? header.slice(7) : "";
+  if (!token || !(await verifyAdminToken(env, token))) {
+    throw new Response("Unauthorized", { status: 401, headers: securityHeaders(env) });
   }
 }
 
@@ -189,11 +296,24 @@ function publicUrl(env, path) {
   return base ? `${base}/${path}` : path;
 }
 
+async function loginAdmin(request, env) {
+  const key = checkLoginThrottle(request, env);
+  const payload = await request.json().catch(() => ({}));
+  const password = String(payload.password || "");
+  const expected = requiredEnv(env, "CHAT_ADMIN_PASSWORD");
+  if (!password || !constantTimeEqual(password, expected)) {
+    recordLoginFailure(key);
+    return text("Unauthorized", 401, env);
+  }
+  recordLoginSuccess(key);
+  return json(await createAdminToken(env), 200, env);
+}
+
 async function postMessage(request, env, roomCode) {
   const room = await readRoom(env, roomCode);
   const form = await request.formData();
   const id = crypto.randomUUID();
-  const sender = String(form.get("sender") || "匿名").trim().slice(0, 32) || "匿名";
+  const sender = String(form.get("sender") || "anonymous").trim().slice(0, 32) || "anonymous";
   const textValue = String(form.get("text") || "").trim().slice(0, 2000);
   const file = form.get("file");
   let fileInfo = null;
@@ -273,7 +393,7 @@ async function clearRoom(env, roomCode) {
 
 async function handleRequest(request, env) {
   if (request.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: corsHeaders(env) });
+    return new Response(null, { status: 204, headers: securityHeaders(env) });
   }
 
   const url = new URL(request.url);
@@ -290,8 +410,12 @@ async function handleRequest(request, env) {
     }
   }
 
+  if (parts[0] === "admin" && parts[1] === "login" && request.method === "POST") {
+    return loginAdmin(request, env);
+  }
+
   if (parts[0] === "admin") {
-    assertAdmin(request, env);
+    await assertAdmin(request, env);
     if (parts[1] === "rooms" && !parts[2] && request.method === "GET") {
       return json({ rooms: await listRooms(env) }, 200, env);
     }

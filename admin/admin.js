@@ -1,6 +1,9 @@
 const defaultApi = String(window.SITE_CHAT_CONFIG?.apiBase || "").replace(/\/$/, "");
 const apiInput = document.querySelector("[data-admin-api]");
-const keyInput = document.querySelector("[data-admin-key]");
+const passwordInput = document.querySelector("[data-admin-password]");
+const loginPanel = document.querySelector("[data-admin-login]");
+const loginStatus = document.querySelector("[data-admin-login-status]");
+const adminApp = document.querySelector("[data-admin-app]");
 const roomList = document.querySelector("[data-room-list]");
 const messagesPanel = document.querySelector("[data-admin-messages]");
 
@@ -11,8 +14,16 @@ function getApiBase() {
   return String(localStorage.getItem("chat.admin.api") || defaultApi || "").replace(/\/$/, "");
 }
 
-function getAdminKey() {
-  return localStorage.getItem("chat.admin.key") || "";
+function getAdminToken() {
+  return sessionStorage.getItem("chat.admin.token") || "";
+}
+
+function setAdminToken(token) {
+  if (token) {
+    sessionStorage.setItem("chat.admin.token", token);
+  } else {
+    sessionStorage.removeItem("chat.admin.token");
+  }
 }
 
 function escapeHtml(value) {
@@ -24,18 +35,42 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-function adminFetch(path, options = {}) {
+function setLoginStatus(message) {
+  if (loginStatus) {
+    loginStatus.textContent = message;
+  }
+}
+
+function showAdminApp(show) {
+  loginPanel.hidden = show;
+  adminApp.hidden = !show;
+}
+
+async function adminFetch(path, options = {}) {
   const apiBase = getApiBase();
+  const token = getAdminToken();
   if (!apiBase) {
     throw new Error("还没有填写 Worker API 地址。");
   }
-  return fetch(`${apiBase}${path}`, {
+  if (!token) {
+    throw new Error("请先登录后台。");
+  }
+
+  const response = await fetch(`${apiBase}${path}`, {
     ...options,
+    cache: "no-store",
     headers: {
-      "x-admin-key": getAdminKey(),
+      "authorization": `Bearer ${token}`,
       ...(options.headers || {}),
     },
   });
+
+  if (response.status === 401) {
+    setAdminToken("");
+    showAdminApp(false);
+    throw new Error("登录已过期或密码已变更，请重新登录。");
+  }
+  return response;
 }
 
 function formatTime(value) {
@@ -50,6 +85,43 @@ function downloadText(filename, text) {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
+}
+
+async function loginAdmin() {
+  const apiBase = String(apiInput.value || "").trim().replace(/\/$/, "");
+  const password = passwordInput.value;
+  if (!apiBase) {
+    setLoginStatus("先填写 Worker API 地址。");
+    return;
+  }
+  if (!password) {
+    setLoginStatus("请输入后台密码。");
+    return;
+  }
+
+  localStorage.setItem("chat.admin.api", apiBase);
+  setLoginStatus("正在验证密码...");
+  const response = await fetch(`${apiBase}/api/admin/login`, {
+    method: "POST",
+    cache: "no-store",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ password }),
+  });
+
+  if (!response.ok) {
+    setAdminToken("");
+    setLoginStatus(response.status === 429 ? "尝试太频繁，请稍后再试。" : "密码不正确。");
+    passwordInput.value = "";
+    return;
+  }
+
+  const payload = await response.json();
+  setAdminToken(payload.token || "");
+  passwordInput.value = "";
+  showAdminApp(true);
+  await loadRooms();
 }
 
 async function loadRooms() {
@@ -102,10 +174,22 @@ async function loadRoom(roomCode) {
     : '<p class="chat-status">这个房间没有消息。</p>';
 }
 
-document.querySelector("[data-save-admin]")?.addEventListener("click", () => {
-  localStorage.setItem("chat.admin.api", apiInput.value.trim());
-  localStorage.setItem("chat.admin.key", keyInput.value);
-  loadRooms().catch((error) => alert(error.message));
+document.querySelector("[data-admin-login-button]")?.addEventListener("click", () => {
+  loginAdmin().catch((error) => setLoginStatus(error.message));
+});
+
+passwordInput?.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    loginAdmin().catch((error) => setLoginStatus(error.message));
+  }
+});
+
+document.querySelector("[data-admin-logout]")?.addEventListener("click", () => {
+  setAdminToken("");
+  currentRoom = "";
+  currentMessages = [];
+  showAdminApp(false);
+  setLoginStatus("已退出登录。");
 });
 
 roomList?.addEventListener("click", (event) => {
@@ -164,9 +248,13 @@ document.querySelector("[data-clear-room]")?.addEventListener("click", async () 
 });
 
 apiInput.value = getApiBase();
-keyInput.value = getAdminKey();
-if (getApiBase()) {
+if (getAdminToken()) {
+  showAdminApp(true);
   loadRooms().catch((error) => {
-    roomList.innerHTML = `<p class="chat-status">${escapeHtml(error.message)}</p>`;
+    setAdminToken("");
+    showAdminApp(false);
+    setLoginStatus(error.message);
   });
+} else {
+  showAdminApp(false);
 }

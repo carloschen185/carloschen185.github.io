@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>聊天后台 - SYSTEM-MEMZ-C</title>
     <meta name="theme-color" content="#fff4cf">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https:; img-src 'self' https: data:; media-src 'self' https:; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'">
     <link rel="stylesheet" href="../styles.css?v=20260620-quakejs-local">
-    <link rel="stylesheet" href="../chat.css?v=20260620-chat">
+    <link rel="stylesheet" href="../chat.css?v=20260620-chat-secure">
   </head>
   <body>
     <header class="site-header" aria-label="后台导航">
@@ -25,22 +27,29 @@
         <div>
           <p class="eyebrow">Admin</p>
           <h1>管理聊天记录</h1>
-          <p class="section-note">这里可以查看房间、删除单条消息、清空房间。管理员密钥只保存在当前浏览器。</p>
+          <p class="section-note">后台需要先登录。密码只发送给 Worker 验证，不写进网页源码，也不会长期保存在浏览器里。</p>
         </div>
       </section>
 
-      <section class="admin-grid">
+      <section class="admin-login-panel admin-panel" data-admin-login>
+        <label>
+          <span class="eyebrow">API</span>
+          <input class="admin-input" data-admin-api autocomplete="off" placeholder="Worker API 地址">
+        </label>
+        <label>
+          <span class="eyebrow">Password</span>
+          <input class="admin-input" data-admin-password type="password" autocomplete="current-password" placeholder="后台密码">
+        </label>
+        <div class="admin-actions">
+          <button class="button primary" type="button" data-admin-login-button>登录后台</button>
+        </div>
+        <p class="chat-status" data-admin-login-status>部署 Worker 后，在这里输入后台密码进入管理界面。</p>
+      </section>
+
+      <section class="admin-grid" data-admin-app hidden>
         <aside class="admin-panel">
-          <label>
-            <span class="eyebrow">API</span>
-            <input class="admin-input" data-admin-api placeholder="Worker API 地址">
-          </label>
-          <label>
-            <span class="eyebrow">Key</span>
-            <input class="admin-input" data-admin-key type="password" placeholder="管理员密钥">
-          </label>
           <div class="admin-actions">
-            <button class="button primary" type="button" data-save-admin>保存并刷新</button>
+            <button class="button secondary" type="button" data-admin-logout>退出登录</button>
           </div>
           <div class="admin-room-list" data-room-list></div>
         </aside>
@@ -59,6 +68,6 @@
     </main>
 
     <script src="../chat-config.js?v=20260620-chat"></script>
-    <script src="admin.js?v=20260620-chat"></script>
+    <script src="admin.js?v=20260620-chat-secure"></script>
   </body>
 </html>
