@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>聊天后台 - SYSTEM-MEMZ-C</title>
+    <meta name="theme-color" content="#fff4cf">
+    <link rel="stylesheet" href="../styles.css?v=20260620-quakejs-local">
+    <link rel="stylesheet" href="../chat.css?v=20260620-chat">
+  </head>
+  <body>
+    <header class="site-header" aria-label="后台导航">
+      <a class="brand" href="../">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        <span>聊天后台</span>
+      </a>
+      <nav class="nav-links" aria-label="页面导航">
+        <a href="../">主页</a>
+        <a href="../chat.html">聊天室</a>
+      </nav>
+    </header>
+
+    <main class="admin-page">
+      <section class="section-heading">
+        <div>
+          <p class="eyebrow">Admin</p>
+          <h1>管理聊天记录</h1>
+          <p class="section-note">这里可以查看房间、删除单条消息、清空房间。管理员密钥只保存在当前浏览器。</p>
+        </div>
+      </section>
+
+      <section class="admin-grid">
+        <aside class="admin-panel">
+          <label>
+            <span class="eyebrow">API</span>
+            <input class="admin-input" data-admin-api placeholder="Worker API 地址">
+          </label>
+          <label>
+            <span class="eyebrow">Key</span>
+            <input class="admin-input" data-admin-key type="password" placeholder="管理员密钥">
+          </label>
+          <div class="admin-actions">
+            <button class="button primary" type="button" data-save-admin>保存并刷新</button>
+          </div>
+          <div class="admin-room-list" data-room-list></div>
+        </aside>
+
+        <section class="admin-panel">
+          <div class="admin-actions">
+            <button class="admin-mini-button" type="button" data-refresh-room>刷新</button>
+            <button class="admin-mini-button" type="button" data-export-room>导出 JSON</button>
+            <button class="admin-mini-button" type="button" data-clear-room>清空房间</button>
+          </div>
+          <div class="admin-message-list" data-admin-messages>
+            <p class="chat-status">先选择一个房间。</p>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="../chat-config.js?v=20260620-chat"></script>
+    <script src="admin.js?v=20260620-chat"></script>
+  </body>
+</html>

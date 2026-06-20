@@ -1,0 +1,15 @@
+name = "github-pages-chat"
+main = "worker.js"
+compatibility_date = "2026-06-20"
+
+[vars]
+GITHUB_OWNER = "carloschen185"
+GITHUB_REPO = "carloschen185.github.io"
+GITHUB_BRANCH = "main"
+PUBLIC_BASE_URL = "https://carloschen185.github.io"
+ALLOWED_ORIGIN = "https://carloschen185.github.io"
+MAX_FILE_BYTES = "5242880"
+
+# Use these as Cloudflare Worker secrets, not public vars:
+# wrangler secret put GITHUB_TOKEN
+# wrangler secret put CHAT_ADMIN_KEY
