@@ -1,176 +1,189 @@
 {
-    "collectionItems":  [
-                            {
-                                "icon":  "01",
-                                "id":  "computer",
-                                "markdownFile":  "content/collection/computer.md",
-                                "text":  "把系统、工具、硬件和各种奇怪问题整理成可复用的小经验。",
-                                "title":  "电脑折腾区"
-                            },
-                            {
-                                "icon":  "02",
-                                "id":  "notes",
-                                "markdownFile":  "content/collection/notes.md",
-                                "text":  "记录最近看过、试过、想继续研究的技术点和 AI 工具。",
-                                "title":  "学习便签"
-                            },
-                            {
-                                "icon":  "03",
-                                "id":  "ideas",
-                                "markdownFile":  "content/collection/ideas.md",
-                                "text":  "收纳一些暂时还没长成项目的想法，先让它们有地方住下。",
-                                "title":  "灵感抽屉"
-                            }
-                        ],
-    "hero":  {
-                 "eyebrow":  "Hello, welcome",
-                 "keywords":  [
-                                  "电脑",
-                                  "创作",
-                                  "学习"
-                              ],
-                 "primaryButtonHref":  "#projects",
-                 "primaryButtonText":  "看看作品",
-                 "secondaryButtonText":  "发封邮件"
-             },
-    "person":  {
-                   "aboutText":  "我是 Carlos Chen，一个热衷于琢磨电脑、尝试新工具、记录想法的人。这个主页会放我正在做的小项目、学习笔记，以及一些值得留下来的链接。",
-                   "avatar":  "assets/avatar-peach.svg",
-                   "bilibili":  "https://space.bilibili.com/3546372894624283",
-                   "brandMark":  "C",
-                   "contactText":  "如果你想聊项目、工具、学习路线，或者只是想打个招呼，可以从这些地方找到我。",
-                   "displayName":  "SYSTEM-MEMZ-C",
-                   "email":  "carloschen185@163.com",
-                   "focus":  "电脑 / 工程 / AI 工具",
-                   "footerText":  "Made with a soft little mood.",
-                   "github":  "https://github.com/carloschen185",
-                   "heroIntro":  "喜欢琢磨电脑、折腾有趣的小项目，也会把零散灵感慢慢收纳成可以分享的东西。",
-                   "role":  "电脑爱好者 / 工具折腾者",
-                   "shortName":  "水蜜桃",
-                   "status":  "继续折腾中",
-                   "telegram":  "https://t.me/carloschen185",
-                   "username":  "carloschen185"
-               },
-    "projects":  [
-                     {
-                         "actions":  [
-                                         {
-                                             "href":  "https://github.com/carloschen185",
-                                             "label":  "打开 GitHub",
-                                             "type":  "link"
-                                         }
-                                     ],
-                         "tags":  [
-                                      "GitHub",
-                                      "Code"
-                                  ],
-                         "text":  "这里会持续放一些代码实验、脚本工具和正在打磨的小项目。",
-                         "title":  "GitHub 小仓库"
-                     },
-                     {
-                         "actions":  [
-                                         {
-                                             "href":  "https://space.bilibili.com/3546372894624283",
-                                             "label":  "去 Bilibili",
-                                             "type":  "link"
-                                         }
-                                     ],
-                         "tags":  [
-                                      "Bilibili",
-                                      "Notes"
-                                  ],
-                         "text":  "把电脑折腾、学习过程和踩坑记录做成更容易看懂的内容。",
-                         "title":  "内容与分享"
-                     },
-                     {
-                         "actions":  [
-                                         {
-                                             "href":  "https://https://www.bilibili.com/video/BV1iz2tBpEAb/",
-                                             "label":  "前往bilibili发布页",
-                                             "type":  "link"
-                                         },
-                                         {
-                                             "href":  "https://https://github.com/carloschen185/Tray",
-                                             "label":  "前往GitHub发布页",
-                                             "type":  "link"
-                                         }
-                                     ],
-                         "tags":  [
-                                      "WIP",
-                                      "Idea"
-                                  ],
-                         "text":  "帮助你隐藏窗口，以便你偷偷干某些事情......",
-                         "title":  "WindowManager"
-                     }
-                 ],
-    "sections":  {
-                     "collectionEyebrow":  "Collection",
-                     "collectionTitle":  "小收藏夹",
-                     "contactEyebrow":  "Contact",
-                     "contactTitle":  "来找我玩",
-                     "footerBackToTopText":  "回到顶部",
-                     "projectEyebrow":  "Works",
-                     "projectTitle":  "最近想展示的东西",
-                     "gamesEyebrow":  "网页游戏",
-                     "gamesTitle":  "开源小游戏",
-                     "gamesNote":  "这些都是可以直接打开玩的网页游戏，按钮点下去就开始；源码也放在 GitHub 上。"
-                 },
-    "site":  {
-                 "heroImage":  "assets/hero-cute.jpg",
-                 "themeColor":  "#fff4cf"
-             },
-    "games":  [
-                  {
-                      "icon":  "MC",
-                      "title":  "原版 MC Classic",
-                      "text":  "官方浏览器版 Minecraft Classic，打开就能玩最早期的原版 MC；需要键盘和支持 WebGL/WebRTC 的浏览器。",
-                      "tags":  [
-                                   "原版 MC",
-                                   "官方经典版",
-                                   "浏览器"
-                               ],
-                      "playUrl":  "https://classic.minecraft.net/",
-                      "sourceUrl":  "",
-                      "license":  "官方经典版"
-                  },
-                  {
-                      "icon":  "48",
-                      "title":  "数字方块 2048",
-                      "text":  "滑动数字方块，把相同数字合成到 2048。简单、耐玩、很容易再来一局。",
-                      "tags":  [
-                                   "益智",
-                                   "数字",
-                                   "MIT 许可"
-                               ],
-                      "playUrl":  "https://gabrielecirulli.github.io/2048/",
-                      "sourceUrl":  "https://github.com/gabrielecirulli/2048",
-                      "license":  "MIT 许可"
-                  },
-                  {
-                      "icon":  "六",
-                      "title":  "六边消除",
-                      "text":  "围绕六边形中心旋转方块，快速消除同色块，节奏比普通俄罗斯方块更紧张。",
-                      "tags":  [
-                                   "益智",
-                                   "反应",
-                                   "GPL-3 许可"
-                               ],
-                      "playUrl":  "https://hextris.github.io/hextris/",
-                      "sourceUrl":  "https://github.com/Hextris/hextris",
-                      "license":  "GPL-3 许可"
-                  },
-                  {
-                      "icon":  "暗",
-                      "title":  "暗室冒险",
-                      "text":  "从一间黑暗小屋和一堆火开始，慢慢探索一个极简文字冒险世界。",
-                      "tags":  [
-                                   "文字冒险",
-                                   "探索",
-                                   "MPL-2 许可"
-                               ],
-                      "playUrl":  "https://doublespeakgames.github.io/adarkroom/",
-                      "sourceUrl":  "https://github.com/doublespeakgames/adarkroom",
-                      "license":  "MPL-2 许可"
-                  }
-              ]
+  "collectionItems": [
+    {
+      "icon": "01",
+      "id": "computer",
+      "markdownFile": "content/collection/computer.md",
+      "text": "把系统、工具、硬件和各种奇怪问题整理成可复用的小经验。",
+      "title": "电脑折腾区"
+    },
+    {
+      "icon": "02",
+      "id": "notes",
+      "markdownFile": "content/collection/notes.md",
+      "text": "记录最近看过、试过、想继续研究的技术点和 AI 工具。",
+      "title": "学习便签"
+    },
+    {
+      "icon": "03",
+      "id": "ideas",
+      "markdownFile": "content/collection/ideas.md",
+      "text": "收纳一些暂时还没长成项目的想法，先让它们有地方住下。",
+      "title": "灵感抽屉"
+    }
+  ],
+  "hero": {
+    "eyebrow": "Hello, welcome",
+    "keywords": [
+      "电脑",
+      "创作",
+      "学习"
+    ],
+    "primaryButtonHref": "#projects",
+    "primaryButtonText": "看看作品",
+    "secondaryButtonText": "发封邮件"
+  },
+  "person": {
+    "aboutText": "我是 Carlos Chen，一个热衷于琢磨电脑、尝试新工具、记录想法的人。这个主页会放我正在做的小项目、学习笔记，以及一些值得留下来的链接。",
+    "avatar": "assets/avatar-peach.svg",
+    "bilibili": "https://space.bilibili.com/3546372894624283",
+    "brandMark": "C",
+    "contactText": "如果你想聊项目、工具、学习路线，或者只是想打个招呼，可以从这些地方找到我。",
+    "displayName": "SYSTEM-MEMZ-C",
+    "email": "carloschen185@163.com",
+    "focus": "电脑 / 工程 / AI 工具",
+    "footerText": "Made with a soft little mood.",
+    "github": "https://github.com/carloschen185",
+    "heroIntro": "喜欢琢磨电脑、折腾有趣的小项目，也会把零散灵感慢慢收纳成可以分享的东西。",
+    "role": "电脑爱好者 / 工具折腾者",
+    "shortName": "水蜜桃",
+    "status": "继续折腾中",
+    "telegram": "https://t.me/carloschen185",
+    "username": "carloschen185"
+  },
+  "projects": [
+    {
+      "actions": [
+        {
+          "href": "https://github.com/carloschen185",
+          "label": "打开 GitHub",
+          "type": "link"
+        }
+      ],
+      "tags": [
+        "GitHub",
+        "Code"
+      ],
+      "text": "这里会持续放一些代码实验、脚本工具和正在打磨的小项目。",
+      "title": "GitHub 小仓库"
+    },
+    {
+      "actions": [
+        {
+          "href": "https://space.bilibili.com/3546372894624283",
+          "label": "去 Bilibili",
+          "type": "link"
+        }
+      ],
+      "tags": [
+        "Bilibili",
+        "Notes"
+      ],
+      "text": "把电脑折腾、学习过程和踩坑记录做成更容易看懂的内容。",
+      "title": "内容与分享"
+    },
+    {
+      "actions": [
+        {
+          "href": "https://https://www.bilibili.com/video/BV1iz2tBpEAb/",
+          "label": "前往bilibili发布页",
+          "type": "link"
+        },
+        {
+          "href": "https://https://github.com/carloschen185/Tray",
+          "label": "前往GitHub发布页",
+          "type": "link"
+        }
+      ],
+      "tags": [
+        "WIP",
+        "Idea"
+      ],
+      "text": "帮助你隐藏窗口，以便你偷偷干某些事情......",
+      "title": "WindowManager"
+    }
+  ],
+  "sections": {
+    "collectionEyebrow": "Collection",
+    "collectionTitle": "小收藏夹",
+    "contactEyebrow": "Contact",
+    "contactTitle": "来找我玩",
+    "footerBackToTopText": "回到顶部",
+    "projectEyebrow": "Works",
+    "projectTitle": "最近想展示的东西",
+    "gamesEyebrow": "网页游戏",
+    "gamesTitle": "开源小游戏",
+    "gamesNote": "这些都是可以直接打开玩的网页游戏，按钮点下去就开始；源码也放在 GitHub 上。"
+  },
+  "site": {
+    "heroImage": "assets/hero-cute.jpg",
+    "themeColor": "#fff4cf"
+  },
+  "games": [
+    {
+      "icon": "MC",
+      "title": "Java版 MC 网页客户端",
+      "text": "这是 Minecraft Java Edition Web Client，支持在浏览器里连接服务器和离线试玩，比 Classic 更接近电脑 Java 版；完整正版体验仍以官方启动器为准。",
+      "tags": [
+        "Java版",
+        "网页客户端",
+        "服务器/离线"
+      ],
+      "playUrl": "https://mcraft.fun/",
+      "sourceUrl": "https://github.com/zardoy/minecraft-web-client",
+      "license": "开源项目"
+    },
+    {
+      "icon": "竞",
+      "title": "未来竞速 HexGL",
+      "text": "BKcore 开源的 WebGL 未来竞速游戏，节奏很快，打开按钮就能直接跑。",
+      "tags": [
+        "竞速",
+        "WebGL",
+        "MIT 许可"
+      ],
+      "playUrl": "https://hexgl.bkcore.com/play/",
+      "sourceUrl": "https://github.com/BKcore/HexGL",
+      "license": "MIT 许可"
+    },
+    {
+      "icon": "48",
+      "title": "数字方块 2048",
+      "text": "滑动数字方块，把相同数字合成到 2048。简单、耐玩，很容易再来一局。",
+      "tags": [
+        "益智",
+        "数字",
+        "MIT 许可"
+      ],
+      "playUrl": "https://gabrielecirulli.github.io/2048/",
+      "sourceUrl": "https://github.com/gabrielecirulli/2048",
+      "license": "MIT 许可"
+    },
+    {
+      "icon": "六",
+      "title": "六边消除",
+      "text": "围绕六边形中心旋转方块，快速消除同色块，节奏比普通俄罗斯方块更紧张。",
+      "tags": [
+        "益智",
+        "反应",
+        "GPL-3 许可"
+      ],
+      "playUrl": "https://hextris.github.io/hextris/",
+      "sourceUrl": "https://github.com/Hextris/hextris",
+      "license": "GPL-3 许可"
+    },
+    {
+      "icon": "暗",
+      "title": "暗室冒险",
+      "text": "从一间黑暗小屋和一堆火开始，慢慢探索一个极简文字冒险世界。",
+      "tags": [
+        "文字冒险",
+        "探索",
+        "MPL-2 许可"
+      ],
+      "playUrl": "https://doublespeakgames.github.io/adarkroom/",
+      "sourceUrl": "https://github.com/doublespeakgames/adarkroom",
+      "license": "MPL-2 许可"
+    }
+  ]
 }

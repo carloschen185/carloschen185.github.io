@@ -78,12 +78,21 @@ const defaultData = {
   games: [
     {
       icon: "MC",
-      title: "原版 MC Classic",
-      text: "官方浏览器版 Minecraft Classic，打开就能玩最早期的原版 MC；需要键盘和支持 WebGL/WebRTC 的浏览器。",
-      tags: ["原版 MC", "官方经典版", "浏览器"],
-      playUrl: "https://classic.minecraft.net/",
-      sourceUrl: "",
-      license: "官方经典版",
+      title: "Java版 MC 网页客户端",
+      text: "这是 Minecraft Java Edition Web Client，支持在浏览器里连接服务器和离线试玩，比 Classic 更接近电脑 Java 版；完整正版体验仍以官方启动器为准。",
+      tags: ["Java版", "网页客户端", "服务器/离线"],
+      playUrl: "https://mcraft.fun/",
+      sourceUrl: "https://github.com/zardoy/minecraft-web-client",
+      license: "开源项目",
+    },
+    {
+      icon: "竞",
+      title: "未来竞速 HexGL",
+      text: "BKcore 开源的 WebGL 未来竞速游戏，节奏很快，打开按钮就能直接跑。",
+      tags: ["竞速", "WebGL", "MIT 许可"],
+      playUrl: "https://hexgl.bkcore.com/play/",
+      sourceUrl: "https://github.com/BKcore/HexGL",
+      license: "MIT 许可",
     },
     {
       icon: "48",
