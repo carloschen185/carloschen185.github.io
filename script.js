@@ -97,9 +97,11 @@ const defaultData = {
     {
       icon: "Q3",
       title: "QuakeJS 雷神之锤3",
-      text: "inolen/quakejs：用 Emscripten 把 ioquake3 移植到浏览器的经典 FPS。官方试玩站当前可能会遇到 HTTPS 证书错误；源码和自建说明在 GitHub。",
+      text: "源码已放进本站仓库的 games/quakejs/source/，入口页由原项目生成；运行时仍会按 QuakeJS 机制加载公开内容服务器资源。",
       tags: ["FPS", "WebGL", "MIT 许可"],
-      playUrl: "http://www.quakejs.com/",
+      playUrl: "games/quakejs/index.html",
+      gameFolder: "games/quakejs",
+      entryHtml: "games/quakejs/index.html",
       sourceUrl: "https://github.com/inolen/quakejs",
       license: "MIT 许可",
     },
