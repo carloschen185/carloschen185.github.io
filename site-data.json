@@ -113,7 +113,10 @@
     "projectTitle": "最近想展示的东西",
     "gamesEyebrow": "网页游戏",
     "gamesTitle": "开源小游戏",
-    "gamesNote": "这些都是可以直接打开玩的网页游戏，按钮点下去就开始；源码也放在 GitHub 上。"
+    "gamesNote": "这些都是可以直接打开玩的网页游戏，按钮点下去就开始；源码也放在 GitHub 上。",
+    "cinemaEyebrow": "Cinema",
+    "cinemaTitle": "小电影院",
+    "cinemaNote": "上传到仓库里的视频会出现在这里，选一部就能直接播放。"
   },
   "site": {
     "heroImage": "assets/hero-cute.jpg",
@@ -200,5 +203,6 @@
       "sourceUrl": "https://github.com/doublespeakgames/adarkroom",
       "license": "MPL-2 许可"
     }
-  ]
+  ],
+  "cinema": []
 }

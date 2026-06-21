@@ -37,6 +37,9 @@ const defaultData = {
     gamesEyebrow: "网页游戏",
     gamesTitle: "开源小游戏",
     gamesNote: "这些都是可以直接打开玩的网页游戏，按钮点下去就开始；源码也放在 GitHub 上。",
+    cinemaEyebrow: "Cinema",
+    cinemaTitle: "小电影院",
+    cinemaNote: "上传到仓库里的视频会出现在这里，选一部就能直接播放。",
     contactEyebrow: "Contact",
     contactTitle: "来找我玩",
     footerBackToTopText: "回到顶部",
@@ -133,6 +136,7 @@ const defaultData = {
       license: "MPL-2 许可",
     },
   ],
+  cinema: [],
 };
 
 function escapeHtml(value) {
@@ -260,6 +264,11 @@ function normalizeData(rawData) {
       title: sections.gamesTitle,
       note: sections.gamesNote,
     },
+    cinemaSection: {
+      eyebrow: sections.cinemaEyebrow,
+      title: sections.cinemaTitle,
+      note: sections.cinemaNote,
+    },
     contact: {
       eyebrow: sections.contactEyebrow,
       title: sections.contactTitle,
@@ -272,6 +281,7 @@ function normalizeData(rawData) {
     collectionItems: data.collectionItems ?? [],
     projects: data.projects ?? [],
     games: data.games ?? [],
+    cinema: data.cinema ?? [],
     links: linksFromPerson(person),
   };
 }
@@ -510,6 +520,108 @@ function renderGameButtons(games) {
     .join("");
 }
 
+function normalizeCinemaSubtitles(item) {
+  if (Array.isArray(item?.subtitles)) {
+    return item.subtitles
+      .map((subtitle) => ({
+        src: String(subtitle?.src ?? "").trim(),
+        srclang: String(subtitle?.srclang ?? "zh").trim() || "zh",
+        label: String(subtitle?.label ?? "中文").trim() || "中文",
+        default: Boolean(subtitle?.default),
+      }))
+      .filter((subtitle) => subtitle.src);
+  }
+  if (item?.subtitle) {
+    return [{ src: item.subtitle, srclang: "zh", label: "中文", default: true }];
+  }
+  return [];
+}
+
+function setCinemaItem(item) {
+  const player = document.querySelector("[data-cinema-player]");
+  const title = document.querySelector("[data-cinema-current-title]");
+  const description = document.querySelector("[data-cinema-current-description]");
+  if (!player || !item) {
+    return;
+  }
+
+  player.pause();
+  player.innerHTML = "";
+  player.removeAttribute("poster");
+  if (item.poster) {
+    player.setAttribute("poster", item.poster);
+  }
+  player.src = item.video || "";
+  normalizeCinemaSubtitles(item).forEach((subtitle, index) => {
+    const track = document.createElement("track");
+    track.kind = "subtitles";
+    track.src = subtitle.src;
+    track.srclang = subtitle.srclang;
+    track.label = subtitle.label;
+    if (subtitle.default || index === 0) {
+      track.default = true;
+    }
+    player.append(track);
+  });
+  player.load();
+  if (title) {
+    title.textContent = item.title || "未命名视频";
+  }
+  if (description) {
+    description.textContent = item.description || "这部视频还没有说明。";
+  }
+}
+
+function renderCinema(cinemaItems) {
+  const list = document.querySelector('[data-render="cinema-list"]');
+  const player = document.querySelector("[data-cinema-player]");
+  if (!list || !player) {
+    return;
+  }
+
+  const items = (cinemaItems ?? []).filter((item) => item?.video);
+  if (!items.length) {
+    player.removeAttribute("src");
+    player.removeAttribute("poster");
+    player.innerHTML = "";
+    list.innerHTML = `
+      <div class="cinema-empty">
+        <strong>片库暂时是空的</strong>
+        <span>打开编辑器的“电影院”栏目，上传视频和字幕后，这里就会自动出现。</span>
+      </div>
+    `;
+    setText("[data-cinema-current-title]", "还没有视频");
+    setText("[data-cinema-current-description]", "在编辑器里上传视频后，这里会变成你的私人放映厅。");
+    return;
+  }
+
+  list.innerHTML = items
+    .map(
+      (item, index) => `
+        <button class="cinema-item${index === 0 ? " is-active" : ""}" type="button" data-cinema-index="${index}">
+          <span class="cinema-thumb" ${item.poster ? `style="background-image: url('${escapeHtml(item.poster)}')"` : ""}>
+            ${item.poster ? "" : escapeHtml(firstGlyph(item.title || "影"))}
+          </span>
+          <span>
+            <strong>${escapeHtml(item.title || "未命名视频")}</strong>
+            <small>${escapeHtml(item.description || "点击开始播放")}</small>
+            ${(item.tags ?? []).length ? `<em>${(item.tags ?? []).map((tag) => escapeHtml(tag)).join(" / ")}</em>` : ""}
+          </span>
+        </button>
+      `,
+    )
+    .join("");
+
+  list.querySelectorAll("[data-cinema-index]").forEach((button) => {
+    button.addEventListener("click", () => {
+      list.querySelectorAll(".cinema-item").forEach((item) => item.classList.remove("is-active"));
+      button.classList.add("is-active");
+      setCinemaItem(items[Number(button.dataset.cinemaIndex)]);
+    });
+  });
+  setCinemaItem(items[0]);
+}
+
 function renderLinks(links) {
   const container = document.querySelector('[data-render="links"]');
   container.innerHTML = (links ?? [])
@@ -555,6 +667,9 @@ function renderPage(rawData) {
   setText("[data-games-eyebrow]", data.gameSection.eyebrow);
   setText("[data-games-title]", data.gameSection.title);
   setText("[data-games-note]", data.gameSection.note);
+  setText("[data-cinema-eyebrow]", data.cinemaSection.eyebrow);
+  setText("[data-cinema-title]", data.cinemaSection.title);
+  setText("[data-cinema-note]", data.cinemaSection.note);
 
   setText("[data-contact-eyebrow]", data.contact.eyebrow);
   setText("[data-contact-title]", data.contact.title);
@@ -568,6 +683,7 @@ function renderPage(rawData) {
   renderProjects(data.projects);
   renderGameButtons(data.games);
   renderGames(data.games);
+  renderCinema(data.cinema);
   renderLinks(data.links);
 }
 

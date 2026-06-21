@@ -23,6 +23,7 @@
         <a href="#collection">收藏夹</a>
         <a href="#projects">作品</a>
         <a href="#games">小游戏</a>
+        <a href="#cinema">电影院</a>
         <a href="chat.html">聊天室</a>
         <a href="#contact">联系</a>
       </nav>
@@ -113,6 +114,28 @@
         </div>
         <div class="games-grid" data-render="games"></div>
       </section>
+      <section class="section cinema-section" id="cinema" aria-labelledby="cinema-title">
+        <div class="section-heading cinema-heading">
+          <div>
+            <p class="eyebrow" data-cinema-eyebrow>Cinema</p>
+            <h2 id="cinema-title" data-cinema-title>小电影院</h2>
+            <p class="section-note" data-cinema-note>上传到仓库里的视频会出现在这里，选一部就能直接播放。</p>
+          </div>
+        </div>
+        <div class="cinema-layout">
+          <div class="cinema-player-panel">
+            <video class="cinema-player" data-cinema-player controls preload="metadata"></video>
+            <div class="cinema-now">
+              <div>
+                <p class="eyebrow">Now Playing</p>
+                <h3 data-cinema-current-title>还没有视频</h3>
+              </div>
+              <p data-cinema-current-description>在编辑器里上传视频后，这里会变成你的私人放映厅。</p>
+            </div>
+          </div>
+          <div class="cinema-list" data-render="cinema-list" aria-label="影片列表"></div>
+        </div>
+      </section>
       <section class="section contact-section" id="contact" aria-labelledby="contact-title">
         <div class="contact-panel">
           <div>
@@ -131,6 +154,6 @@
       <span data-footer-text>Made with a soft little mood.</span>
       <a href="#top" data-footer-top>回到顶部</a>
     </footer>
-    <script src="script.js?v=20260620-quakejs-local"></script>
+    <script src="script.js?v=20260621-cinema"></script>
   </body>
 </html>
