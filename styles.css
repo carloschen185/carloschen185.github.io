@@ -305,6 +305,7 @@ h3 {
 .collection-grid,
 .project-grid,
 .games-grid,
+.short-video-row,
 .cinema-layout,
 .contact-panel {
   width: min(1120px, calc(100% - 32px));
@@ -371,6 +372,120 @@ h3 {
 .quick-facts dd {
   margin: 2px 0 0;
   font-weight: 850;
+}
+
+.short-videos-section {
+  background: linear-gradient(180deg, rgba(255, 249, 233, 0.38), rgba(231, 251, 244, 0.44));
+}
+
+.short-videos-heading {
+  align-items: start;
+}
+
+.short-video-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(260px, 320px);
+  gap: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 12px;
+  scroll-snap-type: x proximity;
+}
+
+.short-video-card,
+.short-video-empty {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: var(--shadow);
+}
+
+.short-video-card {
+  overflow: hidden;
+  scroll-snap-align: start;
+}
+
+.short-video-frame {
+  position: relative;
+  background: #2b2027;
+}
+
+.short-video-player {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #2b2027;
+  object-fit: cover;
+}
+
+.short-video-load {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  min-height: 36px;
+  border: 1px solid rgba(255, 249, 233, 0.72);
+  border-radius: 8px;
+  padding: 7px 11px;
+  background: rgba(60, 45, 54, 0.9);
+  color: #fff9e9;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.short-video-load:disabled {
+  cursor: wait;
+  opacity: 0.78;
+}
+
+.short-video-copy {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+}
+
+.short-video-copy h3,
+.short-video-copy p {
+  margin: 0;
+}
+
+.short-video-copy h3 {
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
+.short-video-copy p {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.short-video-copy div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.short-video-copy span {
+  border: 1px solid rgba(217, 93, 134, 0.22);
+  border-radius: 8px;
+  padding: 3px 7px;
+  background: rgba(255, 226, 235, 0.5);
+  color: #d95d86;
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.short-video-empty {
+  display: grid;
+  grid-auto-flow: row;
+  gap: 8px;
+  min-height: 180px;
+  padding: 22px;
+  color: var(--muted);
+}
+
+.short-video-empty strong {
+  color: var(--ink);
 }
 
 .collection-section {
@@ -912,6 +1027,7 @@ h3 {
   .project-grid,
   .game-launcher,
   .games-grid,
+  .short-video-row,
   .cinema-layout,
   .contact-panel,
   .site-footer {

@@ -40,6 +40,9 @@ const defaultData = {
     cinemaEyebrow: "Cinema",
     cinemaTitle: "小电影院",
     cinemaNote: "上传到仓库里的视频会出现在这里，选一部就能直接播放。",
+    shortVideosEyebrow: "Video Shelf",
+    shortVideosTitle: "视频展示",
+    shortVideosNote: "一些短视频会横向排在这里，像一排小小的放映窗口。",
     contactEyebrow: "Contact",
     contactTitle: "来找我玩",
     footerBackToTopText: "回到顶部",
@@ -137,6 +140,7 @@ const defaultData = {
     },
   ],
   cinema: [],
+  shortVideos: [],
 };
 
 function escapeHtml(value) {
@@ -269,6 +273,11 @@ function normalizeData(rawData) {
       title: sections.cinemaTitle,
       note: sections.cinemaNote,
     },
+    shortVideosSection: {
+      eyebrow: sections.shortVideosEyebrow,
+      title: sections.shortVideosTitle,
+      note: sections.shortVideosNote,
+    },
     contact: {
       eyebrow: sections.contactEyebrow,
       title: sections.contactTitle,
@@ -282,6 +291,7 @@ function normalizeData(rawData) {
     projects: data.projects ?? [],
     games: data.games ?? [],
     cinema: data.cinema ?? [],
+    shortVideos: data.shortVideos ?? [],
     links: linksFromPerson(person),
   };
 }
@@ -537,7 +547,57 @@ function normalizeCinemaSubtitles(item) {
   return [];
 }
 
-function setCinemaItem(item) {
+function isSplitVideoPath(path) {
+  return /\.split\.json($|[?#])/.test(String(path ?? ""));
+}
+
+function clearVideoObjectUrl(video) {
+  if (video?.dataset.objectUrl) {
+    URL.revokeObjectURL(video.dataset.objectUrl);
+    delete video.dataset.objectUrl;
+  }
+}
+
+async function buildSplitVideoUrl(manifestPath) {
+  const manifestResponse = await fetch(manifestPath, { cache: "no-cache" });
+  if (!manifestResponse.ok) {
+    throw new Error(`manifest ${manifestResponse.status}`);
+  }
+  const manifest = await manifestResponse.json();
+  if (manifest.kind !== "split-video" || !Array.isArray(manifest.parts)) {
+    throw new Error("bad manifest");
+  }
+  const buffers = [];
+  for (const part of manifest.parts) {
+    const partResponse = await fetch(part);
+    if (!partResponse.ok) {
+      throw new Error(`part ${partResponse.status}`);
+    }
+    buffers.push(await partResponse.arrayBuffer());
+  }
+  return URL.createObjectURL(new Blob(buffers, { type: manifest.mime || "video/mp4" }));
+}
+
+async function applyVideoSource(video, sourcePath) {
+  clearVideoObjectUrl(video);
+  video.removeAttribute("src");
+  if (!sourcePath) {
+    video.load();
+    return "";
+  }
+  if (isSplitVideoPath(sourcePath)) {
+    const objectUrl = await buildSplitVideoUrl(sourcePath);
+    video.dataset.objectUrl = objectUrl;
+    video.src = objectUrl;
+    return objectUrl;
+  }
+  video.src = sourcePath;
+  return sourcePath;
+}
+
+let cinemaLoadToken = 0;
+
+async function setCinemaItem(item) {
   const player = document.querySelector("[data-cinema-player]");
   const title = document.querySelector("[data-cinema-current-title]");
   const description = document.querySelector("[data-cinema-current-description]");
@@ -545,13 +605,15 @@ function setCinemaItem(item) {
     return;
   }
 
+  const loadToken = ++cinemaLoadToken;
   player.pause();
+  clearVideoObjectUrl(player);
   player.innerHTML = "";
+  player.removeAttribute("src");
   player.removeAttribute("poster");
   if (item.poster) {
     player.setAttribute("poster", item.poster);
   }
-  player.src = item.video || "";
   normalizeCinemaSubtitles(item).forEach((subtitle, index) => {
     const track = document.createElement("track");
     track.kind = "subtitles";
@@ -563,12 +625,29 @@ function setCinemaItem(item) {
     }
     player.append(track);
   });
-  player.load();
   if (title) {
-    title.textContent = item.title || "未命名视频";
+    title.textContent = isSplitVideoPath(item.video) ? "正在装载分片视频..." : item.title || "未命名视频";
   }
   if (description) {
     description.textContent = item.description || "这部视频还没有说明。";
+  }
+  try {
+    await applyVideoSource(player, item.video || "");
+    if (loadToken !== cinemaLoadToken) {
+      clearVideoObjectUrl(player);
+      return;
+    }
+    player.load();
+    if (title) {
+      title.textContent = item.title || "未命名视频";
+    }
+  } catch (error) {
+    if (title) {
+      title.textContent = "视频加载失败";
+    }
+    if (description) {
+      description.textContent = "分片文件没有加载成功，请检查上传和同步是否完整。";
+    }
   }
 }
 
@@ -583,6 +662,7 @@ function renderCinema(cinemaItems) {
   if (!items.length) {
     player.removeAttribute("src");
     player.removeAttribute("poster");
+    clearVideoObjectUrl(player);
     player.innerHTML = "";
     list.innerHTML = `
       <div class="cinema-empty">
@@ -620,6 +700,81 @@ function renderCinema(cinemaItems) {
     });
   });
   setCinemaItem(items[0]);
+}
+
+function renderShortVideos(shortVideos) {
+  const container = document.querySelector('[data-render="short-videos"]');
+  if (!container) {
+    return;
+  }
+  const items = (shortVideos ?? []).filter((item) => item?.video);
+  if (!items.length) {
+    container.innerHTML = `
+      <div class="short-video-empty">
+        <strong>还没有短视频</strong>
+        <span>在编辑器“视频展示”里上传后，这里会变成一排可以滑动的小视频。</span>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = items
+    .map(
+      (item, index) => `
+        <article class="short-video-card" data-short-video-index="${index}">
+          <div class="short-video-frame">
+            <video class="short-video-player" controls playsinline preload="metadata" ${item.poster ? `poster="${escapeHtml(item.poster)}"` : ""}></video>
+            ${isSplitVideoPath(item.video) ? `<button class="short-video-load" type="button">加载分片视频</button>` : ""}
+          </div>
+          <div class="short-video-copy">
+            <h3>${escapeHtml(item.title || "未命名视频")}</h3>
+            <p>${escapeHtml(item.description || "点击播放这个短视频。")}</p>
+            ${(item.tags ?? []).length ? `<div>${(item.tags ?? []).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>` : ""}
+          </div>
+        </article>
+      `,
+    )
+    .join("");
+
+  container.querySelectorAll("[data-short-video-index]").forEach((card) => {
+    const item = items[Number(card.dataset.shortVideoIndex)];
+    const video = card.querySelector("video");
+    const loadButton = card.querySelector(".short-video-load");
+    const load = async (playAfterLoad) => {
+      if (video.dataset.loadedSource === item.video) {
+        if (playAfterLoad) {
+          video.play().catch(() => {});
+        }
+        return;
+      }
+      if (loadButton) {
+        loadButton.textContent = "正在加载...";
+        loadButton.disabled = true;
+      }
+      try {
+        await applyVideoSource(video, item.video);
+        video.dataset.loadedSource = item.video;
+        video.load();
+        if (loadButton) {
+          loadButton.remove();
+        }
+        if (playAfterLoad) {
+          video.play().catch(() => {});
+        }
+      } catch (error) {
+        if (loadButton) {
+          loadButton.textContent = "加载失败，重试";
+          loadButton.disabled = false;
+        }
+      }
+    };
+    if (isSplitVideoPath(item.video)) {
+      loadButton?.addEventListener("click", () => load(true));
+      video.addEventListener("click", () => load(false), { once: true });
+    } else {
+      load(false);
+    }
+  });
 }
 
 function renderLinks(links) {
@@ -670,6 +825,9 @@ function renderPage(rawData) {
   setText("[data-cinema-eyebrow]", data.cinemaSection.eyebrow);
   setText("[data-cinema-title]", data.cinemaSection.title);
   setText("[data-cinema-note]", data.cinemaSection.note);
+  setText("[data-short-videos-eyebrow]", data.shortVideosSection.eyebrow);
+  setText("[data-short-videos-title]", data.shortVideosSection.title);
+  setText("[data-short-videos-note]", data.shortVideosSection.note);
 
   setText("[data-contact-eyebrow]", data.contact.eyebrow);
   setText("[data-contact-title]", data.contact.title);
@@ -679,6 +837,7 @@ function renderPage(rawData) {
 
   renderKeywords(data.hero.keywords);
   renderFacts(data.about.facts);
+  renderShortVideos(data.shortVideos);
   renderCollection(data.collectionItems);
   renderProjects(data.projects);
   renderGameButtons(data.games);

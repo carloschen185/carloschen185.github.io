@@ -116,7 +116,10 @@
     "gamesNote": "这些都是可以直接打开玩的网页游戏，按钮点下去就开始；源码也放在 GitHub 上。",
     "cinemaEyebrow": "Cinema",
     "cinemaTitle": "小电影院",
-    "cinemaNote": "上传到仓库里的视频会出现在这里，选一部就能直接播放。"
+    "cinemaNote": "上传到仓库里的视频会出现在这里，选一部就能直接播放。",
+    "shortVideosEyebrow": "Video Shelf",
+    "shortVideosTitle": "视频展示",
+    "shortVideosNote": "一些短视频会横向排在这里，像一排小小的放映窗口。"
   },
   "site": {
     "heroImage": "assets/hero-cute.jpg",
@@ -204,5 +207,6 @@
       "license": "MPL-2 许可"
     }
   ],
-  "cinema": []
+  "cinema": [],
+  "shortVideos": []
 }
