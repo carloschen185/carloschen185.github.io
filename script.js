@@ -551,6 +551,17 @@ function isSplitVideoPath(path) {
   return /\.split\.json($|[?#])/.test(String(path ?? ""));
 }
 
+function mediaFolderLabel(path, rootPrefix) {
+  const clean = String(path ?? "").split(/[?#]/)[0];
+  if (!clean.startsWith(rootPrefix)) {
+    return "";
+  }
+  const rest = clean.slice(rootPrefix.length).replace(/^\/+/, "");
+  const parts = rest.split("/").filter(Boolean);
+  parts.pop();
+  return parts.join(" / ");
+}
+
 function clearVideoObjectUrl(video) {
   if (video?.dataset.objectUrl) {
     URL.revokeObjectURL(video.dataset.objectUrl);
@@ -684,6 +695,7 @@ function renderCinema(cinemaItems) {
           </span>
           <span>
             <strong>${escapeHtml(item.title || "未命名视频")}</strong>
+            ${mediaFolderLabel(item.video, "media/cinema") ? `<b class="media-path">${escapeHtml(mediaFolderLabel(item.video, "media/cinema"))}</b>` : ""}
             <small>${escapeHtml(item.description || "点击开始播放")}</small>
             ${(item.tags ?? []).length ? `<em>${(item.tags ?? []).map((tag) => escapeHtml(tag)).join(" / ")}</em>` : ""}
           </span>
@@ -728,6 +740,7 @@ function renderShortVideos(shortVideos) {
           </div>
           <div class="short-video-copy">
             <h3>${escapeHtml(item.title || "未命名视频")}</h3>
+            ${mediaFolderLabel(item.video, "media/short-videos") ? `<b class="media-path">${escapeHtml(mediaFolderLabel(item.video, "media/short-videos"))}</b>` : ""}
             <p>${escapeHtml(item.description || "点击播放这个短视频。")}</p>
             ${(item.tags ?? []).length ? `<div>${(item.tags ?? []).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>` : ""}
           </div>

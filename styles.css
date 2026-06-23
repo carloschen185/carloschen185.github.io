@@ -454,6 +454,20 @@ h3 {
   overflow-wrap: anywhere;
 }
 
+.media-path {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  border: 1px solid rgba(60, 45, 54, 0.12);
+  border-radius: 8px;
+  padding: 3px 7px;
+  background: rgba(231, 251, 244, 0.64);
+  color: #4f7b70;
+  font-size: 0.76rem;
+  font-weight: 850;
+  overflow-wrap: anywhere;
+}
+
 .short-video-copy p {
   color: var(--muted);
   font-size: 0.92rem;
@@ -818,6 +832,7 @@ h3 {
 }
 
 .cinema-item strong,
+.cinema-item b,
 .cinema-item small,
 .cinema-item em {
   display: block;
