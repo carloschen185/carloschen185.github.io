@@ -10,9 +10,29 @@
     <meta property="og:title" content="Carlos Chen 的小主页" data-og-title>
     <meta property="og:description" content="一个更柔软、更可爱的个人主页。" data-og-description>
     <meta property="og:image" content="assets/hero-cute.jpg" data-og-image>
-    <link rel="stylesheet" href="styles.css?v=20260623-folder-media">
+    <link rel="stylesheet" href="styles.css?v=20260628-opening">
   </head>
   <body>
+    <div class="opening-screen" data-opening-screen aria-label="主页开场动画">
+      <div class="opening-sky" aria-hidden="true">
+        <span class="opening-petal petal-one"></span>
+        <span class="opening-petal petal-two"></span>
+        <span class="opening-petal petal-three"></span>
+        <span class="opening-petal petal-four"></span>
+        <span class="opening-spark spark-one"></span>
+        <span class="opening-spark spark-two"></span>
+        <span class="opening-spark spark-three"></span>
+      </div>
+      <div class="opening-badge">
+        <span class="opening-mark" data-intro-mark>C</span>
+        <p class="opening-kicker">Welcome to</p>
+        <h2 class="opening-title" data-intro-name>Carlos Chen</h2>
+        <p class="opening-subtitle">小小主页正在开机</p>
+        <span class="opening-loader" aria-hidden="true"></span>
+      </div>
+      <span class="opening-transition-ring" aria-hidden="true"></span>
+      <button class="opening-skip" type="button" data-opening-skip>跳过</button>
+    </div>
     <header class="site-header" aria-label="主导航">
       <a class="brand" href="#top" aria-label="回到首页">
         <span class="brand-mark" aria-hidden="true" data-brand-mark>C</span>
@@ -166,6 +186,6 @@
       <span data-footer-text>Made with a soft little mood.</span>
       <a href="#top" data-footer-top>回到顶部</a>
     </footer>
-    <script src="script.js?v=20260623-folder-media"></script>
+    <script src="script.js?v=20260628-opening"></script>
   </body>
 </html>

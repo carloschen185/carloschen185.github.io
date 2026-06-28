@@ -689,7 +689,7 @@ function renderCinema(cinemaItems) {
   list.innerHTML = items
     .map(
       (item, index) => `
-        <button class="cinema-item${index === 0 ? " is-active" : ""}" type="button" data-cinema-index="${index}">
+        <button class="cinema-item" type="button" data-cinema-index="${index}">
           <span class="cinema-thumb" ${item.poster ? `style="background-image: url('${escapeHtml(item.poster)}')"` : ""}>
             ${item.poster ? "" : escapeHtml(firstGlyph(item.title || "影"))}
           </span>
@@ -711,7 +711,13 @@ function renderCinema(cinemaItems) {
       setCinemaItem(items[Number(button.dataset.cinemaIndex)]);
     });
   });
-  setCinemaItem(items[0]);
+  player.pause();
+  player.removeAttribute("src");
+  player.removeAttribute("poster");
+  clearVideoObjectUrl(player);
+  player.innerHTML = "";
+  setText("[data-cinema-current-title]", "请选择一部影片");
+  setText("[data-cinema-current-description]", "点右侧片单中的影片后再开始加载，这样打开主页时不会自动下载大视频。");
 }
 
 function renderShortVideos(shortVideos) {
@@ -812,6 +818,8 @@ function renderPage(rawData) {
 
   setText("[data-brand-mark]", data.profile.brandMark);
   setText("[data-brand-name]", data.profile.brandName);
+  setText("[data-intro-mark]", data.profile.brandMark);
+  setText("[data-intro-name]", data.profile.brandName);
   setAttr("[data-avatar]", "src", data.profile.avatar);
   setAttr("[data-avatar]", "alt", `${data.profile.brandName} 的头像`);
 
@@ -950,10 +958,47 @@ async function loadData() {
   }
 }
 
+function initOpeningAnimation() {
+  const screen = document.querySelector("[data-opening-screen]");
+  if (!screen || screen.dataset.started === "true") {
+    return;
+  }
+  screen.dataset.started = "true";
+  document.body.classList.add("opening-active");
+
+  const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  const duration = prefersReducedMotion ? 600 : 2900;
+  const transitionDuration = prefersReducedMotion ? 120 : 940;
+  const fadeDuration = prefersReducedMotion ? 80 : 560;
+  let done = false;
+
+  const finish = () => {
+    if (done) {
+      return;
+    }
+    done = true;
+    screen.querySelector(".opening-subtitle").textContent = "准备进入主页";
+    screen.classList.add("is-transitioning");
+    window.setTimeout(() => {
+      document.body.classList.add("opening-revealed");
+      screen.classList.add("is-leaving");
+      window.setTimeout(() => {
+        screen.remove();
+        document.body.classList.remove("opening-active");
+        window.setTimeout(() => document.body.classList.remove("opening-revealed"), 700);
+      }, fadeDuration);
+    }, transitionDuration);
+  };
+
+  screen.querySelector("[data-opening-skip]")?.addEventListener("click", finish);
+  window.setTimeout(finish, duration);
+}
+
 loadData().then((data) => {
   if (document.body?.dataset.page === "collection-detail") {
     renderCollectionDetailPage(data);
   } else {
     renderPage(data);
+    initOpeningAnimation();
   }
 });
