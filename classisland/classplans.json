@@ -1,0 +1,25 @@
+{
+  "Name": "GitHub Pages 档案",
+  "TimeLayouts": {},
+  "ClassPlans": {},
+  "Subjects": {},
+  "IsOverlayClassPlanEnabled": false,
+  "OverlayClassPlanId": null,
+  "TempClassPlanId": null,
+  "TempClassPlanSetupTime": "2026-07-01T00:00:00.0000000+08:00",
+  "ClassPlanGroups": {
+    "ACAF4EF0-E261-4262-B941-34EA93CB4369": {
+      "Name": "默认"
+    },
+    "00000000-0000-0000-0000-000000000000": {
+      "Name": "全局课表群",
+      "IsGlobal": true
+    }
+  },
+  "SelectedClassPlanGroupId": "ACAF4EF0-E261-4262-B941-34EA93CB4369",
+  "TempClassPlanGroupId": null,
+  "TempClassPlanGroupExpireTime": "2026-07-01T00:00:00.0000000+08:00",
+  "IsTempClassPlanGroupEnabled": false,
+  "TempClassPlanGroupType": 0,
+  "OrderedSchedules": {}
+}

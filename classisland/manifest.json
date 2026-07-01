@@ -1,0 +1,33 @@
+{
+  "ClassPlanSource": {
+    "Value": "https://carloschen185.github.io/classisland/classplans.json",
+    "Version": 1
+  },
+  "TimeLayoutSource": {
+    "Value": "https://carloschen185.github.io/classisland/timelayouts.json",
+    "Version": 1
+  },
+  "SubjectsSource": {
+    "Value": "https://carloschen185.github.io/classisland/subjects.json",
+    "Version": 1
+  },
+  "DefaultSettingsSource": {
+    "Value": "",
+    "Version": 0
+  },
+  "PolicySource": {
+    "Value": "",
+    "Version": 0
+  },
+  "ComponentsSource": {
+    "Value": "",
+    "Version": 0
+  },
+  "CredentialSource": {
+    "Value": "",
+    "Version": 0
+  },
+  "ServerKind": 0,
+  "OrganizationName": "Carlos 的 ClassIsland 内部档案",
+  "CoreVersion": "2.0.0.0"
+}
