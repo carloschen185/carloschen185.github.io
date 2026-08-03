@@ -109,6 +109,9 @@
     "contactEyebrow": "Contact",
     "contactTitle": "来找我玩",
     "footerBackToTopText": "回到顶部",
+    "personalToolsEyebrow": "Toolbox",
+    "personalToolsTitle": "个人工具",
+    "personalToolsNote": "这里会放你自己的常用小工具，之后告诉我具体工具，我就继续接进来。",
     "projectEyebrow": "Works",
     "projectTitle": "最近想展示的东西",
     "gamesEyebrow": "网页游戏",
@@ -125,6 +128,20 @@
     "heroImage": "assets/hero-cute.jpg",
     "themeColor": "#fff4cf"
   },
+  "personalTools": [
+    {
+      "icon": "信",
+      "title": "短信查看器",
+      "text": "学校不方便使用手机时，用来查看你手动同步到网页端的短信记录。进入列表前需要输入密码。",
+      "tags": [
+        "短信",
+        "密码保护",
+        "安全版"
+      ],
+      "href": "sms-viewer.html",
+      "actionLabel": "进入查看"
+    }
+  ],
   "games": [
     {
       "icon": "MC",

@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>短信查看器 - 个人工具</title>
+    <meta name="description" content="需要密码才能进入的短信查看器入口。">
+    <meta name="theme-color" content="#fff4cf">
+    <link rel="stylesheet" href="styles.css?v=20260803-sms-viewer">
+  </head>
+  <body data-page="sms-viewer">
+    <header class="site-header" aria-label="工具导航">
+      <a class="brand" href="./#personal-tools" aria-label="回到个人工具">
+        <span class="brand-mark" aria-hidden="true">信</span>
+        <span>短信查看器</span>
+      </a>
+      <nav class="nav-links" aria-label="页面导航">
+        <a href="./#personal-tools">个人工具</a>
+        <a href="./">主页</a>
+      </nav>
+    </header>
+
+    <main class="tool-page">
+      <section class="tool-hero" aria-labelledby="sms-viewer-title">
+        <p class="eyebrow">Personal Tool</p>
+        <h1 id="sms-viewer-title">短信查看器</h1>
+        <p class="intro">这里是短信列表的网页入口。为保护账号和隐私，目前只支持查看手动整理后的短信数据，不会自动读取、上传或转发手机短信与验证码。</p>
+      </section>
+
+      <section class="tool-panel" aria-labelledby="sms-safety-title">
+        <div class="tool-panel-heading">
+          <span class="tool-panel-icon" aria-hidden="true">!</span>
+          <div>
+            <p class="eyebrow">Safety</p>
+            <h2 id="sms-safety-title">功能说明</h2>
+          </div>
+        </div>
+        <div class="tool-copy-grid">
+          <article>
+            <h3>可以做什么</h3>
+            <p>输入密码后查看已同步到本站数据文件里的短信条目，适合保存不敏感的通知、提醒和手动摘录内容。</p>
+          </article>
+          <article>
+            <h3>不会做什么</h3>
+            <p>不会自动监听手机短信，不会把验证码上传到 GitHub，也不会帮助绕过网站的登录安全流程。</p>
+          </article>
+          <article>
+            <h3>下一步</h3>
+            <p>你告诉我网页入口密码后，我会把密码哈希写进页面。之后如果要做安全版手机端，可以设计成每条短信都由手机用户手动确认再同步。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="tool-panel" aria-labelledby="sms-login-title">
+        <div class="tool-panel-heading">
+          <span class="tool-panel-icon" aria-hidden="true">钥</span>
+          <div>
+            <p class="eyebrow">Password</p>
+            <h2 id="sms-login-title">进入短信列表</h2>
+          </div>
+        </div>
+        <form class="tool-password-form" data-sms-password-form>
+          <label for="sms-password">查看密码</label>
+          <div>
+            <input id="sms-password" name="password" type="password" autocomplete="current-password" placeholder="等待你设置密码" data-sms-password>
+            <button class="button primary" type="submit">进入</button>
+          </div>
+          <p class="tool-form-note" data-sms-auth-message>密码还没有设置。你一会把密码告诉我后，我会把这里接好。</p>
+        </form>
+      </section>
+
+      <section class="tool-panel sms-list-panel" aria-labelledby="sms-list-title" data-sms-list-panel hidden>
+        <div class="tool-panel-heading">
+          <span class="tool-panel-icon" aria-hidden="true">短</span>
+          <div>
+            <p class="eyebrow">Messages</p>
+            <h2 id="sms-list-title">短信列表</h2>
+          </div>
+        </div>
+        <div class="sms-list" data-sms-list></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>Personal toolbox</span>
+      <a href="./#personal-tools">回到个人工具</a>
+    </footer>
+
+    <script>
+      const PASSWORD_SHA256 = "";
+      const DATA_URL = "sms-messages.json";
+      const SESSION_KEY = "sms-viewer-authenticated";
+
+      const form = document.querySelector("[data-sms-password-form]");
+      const input = document.querySelector("[data-sms-password]");
+      const message = document.querySelector("[data-sms-auth-message]");
+      const panel = document.querySelector("[data-sms-list-panel]");
+      const list = document.querySelector("[data-sms-list]");
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      async function sha256(value) {
+        const bytes = new TextEncoder().encode(value);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", bytes);
+        return Array.from(new Uint8Array(hashBuffer))
+          .map((byte) => byte.toString(16).padStart(2, "0"))
+          .join("");
+      }
+
+      function renderMessages(items) {
+        const safeItems = Array.isArray(items) ? items : [];
+        if (!safeItems.length) {
+          list.innerHTML = `
+            <article class="sms-empty">
+              <strong>还没有短信数据</strong>
+              <span>这里会显示手动同步后的短信条目。当前没有接入自动读取或上传。</span>
+            </article>
+          `;
+          return;
+        }
+
+        list.innerHTML = safeItems
+          .map(
+            (item) => `
+              <article class="sms-item">
+                <div>
+                  <h3>${escapeHtml(item.sender || "未知发件人")}</h3>
+                  <time>${escapeHtml(item.time || "")}</time>
+                </div>
+                <p>${escapeHtml(item.body || "")}</p>
+              </article>
+            `,
+          )
+          .join("");
+      }
+
+      async function unlock() {
+        panel.hidden = false;
+        message.textContent = "已进入短信列表。";
+        try {
+          const response = await fetch(DATA_URL, { cache: "no-store" });
+          renderMessages(response.ok ? await response.json() : []);
+        } catch (error) {
+          renderMessages([]);
+        }
+      }
+
+      if (!PASSWORD_SHA256) {
+        input.disabled = true;
+        form.querySelector("button").disabled = true;
+      } else if (sessionStorage.getItem(SESSION_KEY) === "true") {
+        unlock();
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!PASSWORD_SHA256) {
+          message.textContent = "密码还没有设置，暂时不能进入。";
+          return;
+        }
+        const digest = await sha256(input.value);
+        if (digest !== PASSWORD_SHA256) {
+          message.textContent = "密码不对，请再试一次。";
+          input.select();
+          return;
+        }
+        sessionStorage.setItem(SESSION_KEY, "true");
+        unlock();
+      });
+    </script>
+  </body>
+</html>

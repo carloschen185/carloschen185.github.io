@@ -34,6 +34,9 @@ const defaultData = {
     collectionTitle: "小收藏夹",
     projectEyebrow: "Works",
     projectTitle: "最近想展示的东西",
+    personalToolsEyebrow: "Toolbox",
+    personalToolsTitle: "个人工具",
+    personalToolsNote: "这里会放你自己的常用小工具，之后告诉我具体工具，我就继续接进来。",
     gamesEyebrow: "网页游戏",
     gamesTitle: "开源小游戏",
     gamesNote: "这些都是可以直接打开玩的网页游戏，按钮点下去就开始；源码也放在 GitHub 上。",
@@ -79,6 +82,16 @@ const defaultData = {
       title: "下一件作品",
       text: "还在酝酿中。等它稍微成形，就把它搬到这个位置。",
       tags: ["WIP", "Idea"],
+    },
+  ],
+  personalTools: [
+    {
+      icon: "信",
+      title: "短信查看器",
+      text: "学校不方便使用手机时，用来查看你手动同步到网页端的短信记录。进入列表前需要输入密码。",
+      tags: ["短信", "密码保护", "安全版"],
+      href: "sms-viewer.html",
+      actionLabel: "进入查看",
     },
   ],
   games: [
@@ -263,6 +276,11 @@ function normalizeData(rawData) {
       eyebrow: sections.projectEyebrow,
       title: sections.projectTitle,
     },
+    personalToolsSection: {
+      eyebrow: sections.personalToolsEyebrow,
+      title: sections.personalToolsTitle,
+      note: sections.personalToolsNote,
+    },
     gameSection: {
       eyebrow: sections.gamesEyebrow,
       title: sections.gamesTitle,
@@ -289,6 +307,7 @@ function normalizeData(rawData) {
     },
     collectionItems: data.collectionItems ?? [],
     projects: data.projects ?? [],
+    personalTools: data.personalTools ?? [],
     games: data.games ?? [],
     cinema: data.cinema ?? [],
     shortVideos: data.shortVideos ?? [],
@@ -479,6 +498,54 @@ function renderProjects(projects) {
     )
     .join("");
 }
+
+function renderPersonalTools(tools) {
+  const container = document.querySelector('[data-render="personal-tools"]');
+  if (!container) {
+    return;
+  }
+
+  const visibleTools = (tools ?? []).filter((tool) => tool.title || tool.href);
+  if (!visibleTools.length) {
+    container.innerHTML = `
+      <article class="personal-tool-empty">
+        <span aria-hidden="true">+</span>
+        <div>
+          <h3>等待添加第一个工具</h3>
+          <p>告诉我你想放哪些个人工具，我会把入口、说明和打开方式都整理到这里。</p>
+        </div>
+      </article>
+    `;
+    return;
+  }
+
+  container.innerHTML = visibleTools
+    .map((tool) => {
+      const href = tool.href || tool.url || "";
+      const target = tool.target || (href.startsWith("#") || href.startsWith(".") || href.endsWith(".html") ? "_self" : "_blank");
+      return `
+        <article class="personal-tool-card">
+          <div class="personal-tool-icon" aria-hidden="true">${escapeHtml(tool.icon || firstGlyph(tool.title || "T"))}</div>
+          <div>
+            <h3>${escapeHtml(tool.title || "未命名工具")}</h3>
+            ${tool.text ? `<p>${escapeHtml(tool.text)}</p>` : ""}
+          </div>
+          <div class="project-meta">
+            <div class="project-tags">
+              ${(tool.tags ?? []).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}
+            </div>
+            ${
+              href
+                ? `<div class="project-actions"><a class="project-action" href="${escapeHtml(href)}" target="${escapeHtml(target)}" rel="noreferrer">${escapeHtml(tool.actionLabel || "打开工具")}</a></div>`
+                : ""
+            }
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+}
+
 function renderGames(games) {
   const container = document.querySelector('[data-render="games"]');
   if (!container) {
@@ -840,6 +907,9 @@ function renderPage(rawData) {
   setText("[data-collection-title]", data.collectionSection.title);
   setText("[data-project-eyebrow]", data.projectSection.eyebrow);
   setText("[data-project-title]", data.projectSection.title);
+  setText("[data-personal-tools-eyebrow]", data.personalToolsSection.eyebrow);
+  setText("[data-personal-tools-title]", data.personalToolsSection.title);
+  setText("[data-personal-tools-note]", data.personalToolsSection.note);
   setText("[data-games-eyebrow]", data.gameSection.eyebrow);
   setText("[data-games-title]", data.gameSection.title);
   setText("[data-games-note]", data.gameSection.note);
@@ -861,6 +931,7 @@ function renderPage(rawData) {
   renderShortVideos(data.shortVideos);
   renderCollection(data.collectionItems);
   renderProjects(data.projects);
+  renderPersonalTools(data.personalTools);
   renderGameButtons(data.games);
   renderGames(data.games);
   renderCinema(data.cinema);
