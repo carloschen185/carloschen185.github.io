@@ -6,7 +6,7 @@
     <title>短信查看器 - 个人工具</title>
     <meta name="description" content="需要密码才能进入的短信查看器入口。">
     <meta name="theme-color" content="#fff4cf">
-    <link rel="stylesheet" href="styles.css?v=20260803-sms-password">
+    <link rel="stylesheet" href="styles.css?v=20260803-sms-time-sort">
   </head>
   <body data-page="sms-viewer">
     <header class="site-header" aria-label="工具导航">
@@ -80,7 +80,7 @@
         <div class="sms-toolbar">
           <button class="project-action" type="button" data-sms-up-button hidden>返回上级</button>
           <button class="project-action" type="button" data-sms-refresh-button>刷新列表</button>
-          <span data-sms-path>IQOO15Messages /</span>
+          <span data-sms-path>IQOO15Messages / 最新在前</span>
         </div>
         <div class="sms-storage-layout">
           <div class="sms-list" data-sms-list></div>
@@ -169,6 +169,24 @@
         return !item.id && !item.metadata;
       }
 
+      function itemTimestamp(item) {
+        return Date.parse(item.updated_at || item.created_at || item.last_accessed_at || "") || 0;
+      }
+
+      function sortByTimeDesc(items) {
+        return [...items].sort((a, b) => {
+          const folderDelta = Number(isFolder(a)) - Number(isFolder(b));
+          if (folderDelta) {
+            return folderDelta;
+          }
+          const timeDelta = itemTimestamp(b) - itemTimestamp(a);
+          if (timeDelta) {
+            return timeDelta;
+          }
+          return String(a.name || "").localeCompare(String(b.name || ""), "zh-CN");
+        });
+      }
+
       function setStatus(text) {
         if (message) {
           message.textContent = text;
@@ -176,8 +194,8 @@
       }
 
       function renderMessages(items) {
-        const safeItems = Array.isArray(items) ? items : [];
-        pathLabel.textContent = `${BUCKET_NAME} / ${currentPrefix ? `${currentPrefix} /` : ""}`;
+        const safeItems = sortByTimeDesc(Array.isArray(items) ? items : []);
+        pathLabel.textContent = `${BUCKET_NAME} / ${currentPrefix ? `${currentPrefix} / ` : ""}最新在前`;
         upButton.hidden = !currentPrefix;
         if (!safeItems.length) {
           list.innerHTML = `
@@ -239,7 +257,7 @@
               prefix: currentPrefix,
               limit: 100,
               offset: 0,
-              sortBy: { column: "name", order: "asc" },
+              sortBy: { column: "updated_at", order: "desc" },
             }),
           });
           if (!response.ok) {
