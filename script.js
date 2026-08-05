@@ -938,6 +938,19 @@ function renderPage(rawData) {
   renderLinks(data.links);
 }
 
+function renderPersonalToolsPage(rawData) {
+  const data = normalizeData(rawData);
+
+  document.title = `${data.personalToolsSection.title} - ${data.site.title}`;
+  setText("[data-brand-mark]", data.profile.brandMark);
+  setText("[data-brand-name]", data.profile.brandName);
+  setText("[data-personal-tools-eyebrow]", data.personalToolsSection.eyebrow);
+  setText("[data-personal-tools-title]", data.personalToolsSection.title);
+  setText("[data-personal-tools-note]", data.personalToolsSection.note);
+  setText("[data-footer-text]", data.footer.text);
+  renderPersonalTools(data.personalTools);
+}
+
 
 function collectionItemFromUrl(items) {
   const params = new URLSearchParams(window.location.search);
@@ -1068,6 +1081,8 @@ function initOpeningAnimation() {
 loadData().then((data) => {
   if (document.body?.dataset.page === "collection-detail") {
     renderCollectionDetailPage(data);
+  } else if (document.body?.dataset.page === "personal-tools") {
+    renderPersonalToolsPage(data);
   } else {
     renderPage(data);
     initOpeningAnimation();

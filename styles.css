@@ -1010,6 +1010,14 @@ h3 {
   background: linear-gradient(180deg, rgba(231, 251, 244, 0.48), rgba(255, 249, 233, 0.58));
 }
 
+.personal-tools-page .tool-hero {
+  padding-bottom: 12px;
+}
+
+.tool-panel .personal-tools-grid {
+  width: 100%;
+}
+
 .personal-tools-heading {
   align-items: start;
 }
