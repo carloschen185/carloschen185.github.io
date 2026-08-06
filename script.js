@@ -1,7 +1,7 @@
 const defaultData = {
   person: {
-    displayName: "Carlos Chen",
-    shortName: "Carlos",
+    displayName: "SYSTEM-MEMZ-C",
+    shortName: "水蜜桃",
     brandMark: "C",
     username: "carloschen185",
     role: "电脑爱好者 / 工具折腾者",
@@ -27,7 +27,7 @@ const defaultData = {
     primaryButtonText: "看看作品",
     primaryButtonHref: "#projects",
     secondaryButtonText: "发封邮件",
-    keywords: ["电脑", "创作", "学习", "一点点可爱"],
+    keywords: ["电脑", "创作", "学习"],
   },
   sections: {
     collectionEyebrow: "Collection",
