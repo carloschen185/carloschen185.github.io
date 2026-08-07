@@ -248,7 +248,7 @@ function normalizeData(rawData) {
     },
     hero: {
       eyebrow: hero.eyebrow,
-      title: `这里是 ${shortName} 的小小主页。`,
+      title: `这里是 ${shortName} 的小主页！^ - ^`,
       titleName: shortName,
       intro: person.heroIntro,
       primaryButtonText: hero.primaryButtonText,
