@@ -327,9 +327,9 @@ function renderHeroTitle(hero) {
   if (!node) {
     return;
   }
-  const fallbackName = hero.title?.replace(/^这里是\s*/, "").replace(/\s*的小小主页。$/, "") || "";
+  const fallbackName = hero.title?.replace(/^这里是\s*/, "").replace(/\s*的小主页！\^ - \^$/, "") || "";
   const name = hero.titleName || fallbackName;
-  node.innerHTML = `这里是 <span class="hero-name">${escapeHtml(name)}</span> 的小小主页。`;
+node.innerHTML = `这里是 <span class="hero-name">${escapeHtml(name)}</span> 的小主页！^ - ^`;
 }
 
 function setAttr(selector, attr, value) {
