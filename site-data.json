@@ -154,7 +154,7 @@
         "shortName": "水蜜桃",
         "status": "继续折腾中",
         "telegram": "https://t.me/carloschen185",
-        "username": "carloschen185"
+        "username": "carloschen185 | SYSTEM-MEMZ-C | 水蜜桃鸽子"
     },
     "projects": [
         {
@@ -190,12 +190,12 @@
         {
             "actions": [
                 {
-                    "href": "https://https://www.bilibili.com/video/BV1iz2tBpEAb/",
+                    "href": "https://www.bilibili.com/video/BV1iz2tBpEAb/",
                     "label": "前往bilibili发布页",
                     "type": "link"
                 },
                 {
-                    "href": "https://https://github.com/carloschen185/Tray",
+                    "href": "https://github.com/carloschen185/Tray",
                     "label": "前往GitHub发布页",
                     "type": "link"
                 }
@@ -221,7 +221,7 @@
         "gamesNote": "这些都是可以直接打开玩的网页游戏，按钮点下去就开始；源码也放在 GitHub 上。",
         "gamesTitle": "开源小游戏",
         "personalToolsEyebrow": "Toolbox",
-        "personalToolsNote": "这里会放水蜜桃鸽鸽常用滴小工具~",
+        "personalToolsNote": "这里会放水蜜桃鸽鸽常用滴小工具~~~",
         "personalToolsTitle": "个人工具",
         "projectEyebrow": "Works",
         "projectTitle": "最近想展示的东西",
