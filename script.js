@@ -93,6 +93,14 @@ const defaultData = {
       href: "sms-viewer.html",
       actionLabel: "进入查看",
     },
+    {
+      iconImage: "assets/backup-code-vault.png",
+      title: "备用码保险箱",
+      text: "在没带手机时安全取用备用码。内容端到端加密保存，已用状态会同步到所有设备。",
+      tags: ["备用码", "端到端加密", "跨设备同步"],
+      href: "backup-code-vault.html",
+      actionLabel: "打开保险箱",
+    },
   ],
   games: [
     {
@@ -525,7 +533,11 @@ function renderPersonalTools(tools) {
       const target = tool.target || (href.startsWith("#") || href.startsWith(".") || href.endsWith(".html") ? "_self" : "_blank");
       return `
         <article class="personal-tool-card">
-          <div class="personal-tool-icon" aria-hidden="true">${escapeHtml(tool.icon || firstGlyph(tool.title || "T"))}</div>
+          ${
+            tool.iconImage
+              ? `<img class="personal-tool-icon-image" src="${escapeHtml(tool.iconImage)}" alt="">`
+              : `<div class="personal-tool-icon" aria-hidden="true">${escapeHtml(tool.icon || firstGlyph(tool.title || "T"))}</div>`
+          }
           <div>
             <h3>${escapeHtml(tool.title || "未命名工具")}</h3>
             ${tool.text ? `<p>${escapeHtml(tool.text)}</p>` : ""}

@@ -156,6 +156,32 @@
         "telegram": "https://t.me/carloschen185",
         "username": "carloschen185 | SYSTEM-MEMZ-C | 水蜜桃鸽子"
     },
+    "personalTools": [
+        {
+            "actionLabel": "进入查看",
+            "href": "sms-viewer.html",
+            "icon": "信",
+            "tags": [
+                "短信",
+                "密码保护",
+                "安全版"
+            ],
+            "text": "学校不方便使用手机时，用来查看你手动同步到网页端的短信记录。进入列表前需要输入密码。",
+            "title": "短信查看器"
+        },
+        {
+            "actionLabel": "打开保险箱",
+            "href": "backup-code-vault.html",
+            "iconImage": "assets/backup-code-vault.png",
+            "tags": [
+                "备用码",
+                "端到端加密",
+                "跨设备同步"
+            ],
+            "text": "在没带手机时安全取用备用码。内容端到端加密保存，已用状态会同步到所有设备。",
+            "title": "备用码保险箱"
+        }
+    ],
     "projects": [
         {
             "actions": [

@@ -3,10 +3,12 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://hxpiiajuhcxettowruwr.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+    <meta http-equiv="Cache-Control" content="no-store, max-age=0">
     <title>短信查看器 - 个人工具</title>
     <meta name="description" content="需要密码才能进入的短信查看器入口。">
     <meta name="theme-color" content="#fff4cf">
-    <link rel="stylesheet" href="styles.css?v=20260803-sms-time-sort">
+    <link rel="stylesheet" href="styles.css?v=20260825-vault1">
   </head>
   <body data-page="sms-viewer">
     <header class="site-header" aria-label="工具导航">
@@ -16,6 +18,7 @@
       </a>
       <nav class="nav-links" aria-label="页面导航">
         <a href="personal-tools.html">个人工具</a>
+        <a href="backup-code-vault.html">备用码保险箱</a>
         <a href="./">主页</a>
       </nav>
     </header>
@@ -30,52 +33,34 @@
       <section class="tool-panel" aria-labelledby="sms-info-title">
         <div class="tool-panel-heading">
           <span class="tool-panel-icon" aria-hidden="true">i</span>
-          <div>
-            <p class="eyebrow">Info</p>
-            <h2 id="sms-info-title">功能说明</h2>
-          </div>
+          <div><p class="eyebrow">Info</p><h2 id="sms-info-title">功能说明</h2></div>
         </div>
         <div class="tool-copy-grid">
-          <article>
-            <h3>文件列表</h3>
-            <p>进入后会读取一次 IQOO15Messages 存储桶，展示里面的文件和文件夹。</p>
-          </article>
-          <article>
-            <h3>刷新列表</h3>
-            <p>点击刷新按钮，会重新获取当前文件夹里的文件信息。</p>
-          </article>
-          <article>
-            <h3>查看内容</h3>
-            <p>点击文件后，右侧会显示这个文件的具体文本内容。</p>
-          </article>
+          <article><h3>文件列表</h3><p>进入后会读取一次 IQOO15Messages 存储桶，展示里面的文件和文件夹。</p></article>
+          <article><h3>刷新列表</h3><p>点击刷新按钮，会重新获取当前文件夹里的文件信息。</p></article>
+          <article><h3>查看内容</h3><p>点击文件后，右侧会显示这个文件的具体文本内容。</p></article>
         </div>
       </section>
 
       <section class="tool-panel" aria-labelledby="sms-login-title">
         <div class="tool-panel-heading">
           <span class="tool-panel-icon" aria-hidden="true">钥</span>
-          <div>
-            <p class="eyebrow">Password</p>
-            <h2 id="sms-login-title">进入短信列表</h2>
-          </div>
+          <div><p class="eyebrow">Password</p><h2 id="sms-login-title">进入短信列表</h2></div>
         </div>
         <form class="tool-password-form" data-sms-password-form>
           <label for="sms-password">查看密码</label>
           <div>
-            <input id="sms-password" name="password" type="password" autocomplete="current-password" placeholder="等待你设置密码" data-sms-password>
+            <input id="sms-password" name="password" type="password" autocomplete="current-password" maxlength="256" required placeholder="输入查看密码" data-sms-password>
             <button class="button primary" type="submit">进入</button>
           </div>
-          <p class="tool-form-note" data-sms-auth-message>密码还没有设置。你一会把密码告诉我后，我会把这里接好。</p>
+          <p class="tool-form-note" role="status" aria-live="polite" data-sms-auth-message>此密码也用于备用码保险箱；验证会话有效 10 分钟。</p>
         </form>
       </section>
 
       <section class="tool-panel sms-list-panel" aria-labelledby="sms-list-title" data-sms-list-panel hidden>
         <div class="tool-panel-heading">
           <span class="tool-panel-icon" aria-hidden="true">短</span>
-          <div>
-            <p class="eyebrow">Messages</p>
-            <h2 id="sms-list-title">短信列表</h2>
-          </div>
+          <div><p class="eyebrow">Messages</p><h2 id="sms-list-title">短信列表</h2></div>
         </div>
         <div class="sms-toolbar">
           <button class="project-action" type="button" data-sms-up-button hidden>返回上级</button>
@@ -85,253 +70,15 @@
         <div class="sms-storage-layout">
           <div class="sms-list" data-sms-list></div>
           <article class="sms-content-viewer">
-            <div>
-              <p class="eyebrow">File Content</p>
-              <h3 data-sms-file-title>请选择一个文件</h3>
-            </div>
+            <div><p class="eyebrow">File Content</p><h3 data-sms-file-title>请选择一个文件</h3></div>
             <pre data-sms-file-content>点击左侧文件后，这里会显示内容。</pre>
           </article>
         </div>
       </section>
     </main>
 
-    <footer class="site-footer">
-      <span>Personal toolbox</span>
-      <a href="personal-tools.html">回到个人工具</a>
-    </footer>
-
-    <script>
-      const PASSWORD_SHA256 = "abec0c14a0e3815b42fbb02e3eaa2714929f6347ebdb3408f252dcc34fc417bd";
-      const SUPABASE_URL = "https://hxpiiajuhcxettowruwr.supabase.co";
-      const SUPABASE_KEY = "sb_publishable_QdxPn4rf55Tg32WkcVtvcA_me46GA8M";
-      const BUCKET_NAME = "IQOO15Messages";
-      const SESSION_KEY = "sms-viewer-authenticated";
-
-      const form = document.querySelector("[data-sms-password-form]");
-      const input = document.querySelector("[data-sms-password]");
-      const message = document.querySelector("[data-sms-auth-message]");
-      const panel = document.querySelector("[data-sms-list-panel]");
-      const list = document.querySelector("[data-sms-list]");
-      const refreshButton = document.querySelector("[data-sms-refresh-button]");
-      const upButton = document.querySelector("[data-sms-up-button]");
-      const pathLabel = document.querySelector("[data-sms-path]");
-      const fileTitle = document.querySelector("[data-sms-file-title]");
-      const fileContent = document.querySelector("[data-sms-file-content]");
-      let currentPrefix = "";
-
-      function escapeHtml(value) {
-        return String(value ?? "")
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;")
-          .replaceAll("'", "&#039;");
-      }
-
-      async function sha256(value) {
-        const bytes = new TextEncoder().encode(value);
-        const hashBuffer = await crypto.subtle.digest("SHA-256", bytes);
-        return Array.from(new Uint8Array(hashBuffer))
-          .map((byte) => byte.toString(16).padStart(2, "0"))
-          .join("");
-      }
-
-      function storageHeaders(contentType) {
-        const headers = {
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`,
-        };
-        if (contentType) {
-          headers["Content-Type"] = contentType;
-        }
-        return headers;
-      }
-
-      function storageObjectPath(path) {
-        return String(path || "")
-          .split("/")
-          .filter(Boolean)
-          .map((part) => encodeURIComponent(part))
-          .join("/");
-      }
-
-      function joinPath(prefix, name) {
-        return [prefix, name].filter(Boolean).join("/").replaceAll(/\/+/g, "/");
-      }
-
-      function parentPath(prefix) {
-        const parts = String(prefix || "").split("/").filter(Boolean);
-        parts.pop();
-        return parts.join("/");
-      }
-
-      function isFolder(item) {
-        return !item.id && !item.metadata;
-      }
-
-      function itemTimestamp(item) {
-        return Date.parse(item.updated_at || item.created_at || item.last_accessed_at || "") || 0;
-      }
-
-      function sortByTimeDesc(items) {
-        return [...items].sort((a, b) => {
-          const folderDelta = Number(isFolder(a)) - Number(isFolder(b));
-          if (folderDelta) {
-            return folderDelta;
-          }
-          const timeDelta = itemTimestamp(b) - itemTimestamp(a);
-          if (timeDelta) {
-            return timeDelta;
-          }
-          return String(a.name || "").localeCompare(String(b.name || ""), "zh-CN");
-        });
-      }
-
-      function setStatus(text) {
-        if (message) {
-          message.textContent = text;
-        }
-      }
-
-      function renderMessages(items) {
-        const safeItems = sortByTimeDesc(Array.isArray(items) ? items : []);
-        pathLabel.textContent = `${BUCKET_NAME} / ${currentPrefix ? `${currentPrefix} / ` : ""}最新在前`;
-        upButton.hidden = !currentPrefix;
-        if (!safeItems.length) {
-          list.innerHTML = `
-            <article class="sms-empty">
-              <strong>这里还没有文件</strong>
-              <span>当前文件夹没有可显示的文件信息。</span>
-            </article>
-          `;
-          return;
-        }
-
-        list.innerHTML = safeItems
-          .map(
-            (item) => {
-              const itemPath = joinPath(currentPrefix, item.name);
-              const folder = isFolder(item);
-              const size = item.metadata?.size ? `${Math.round(item.metadata.size / 1024)} KB` : "";
-              return `
-              <button class="sms-file-item" type="button" data-sms-path-item="${escapeHtml(itemPath)}" data-sms-kind="${folder ? "folder" : "file"}">
-                <div>
-                  <h3>${escapeHtml(folder ? `${item.name}/` : item.name)}</h3>
-                  <time>${escapeHtml(item.updated_at || item.created_at || "")}</time>
-                </div>
-                <p>${escapeHtml(folder ? "文件夹" : size || "文件")}</p>
-              </button>
-            `;
-            },
-          )
-          .join("");
-
-        list.querySelectorAll("[data-sms-path-item]").forEach((button) => {
-          button.addEventListener("click", () => {
-            const path = button.dataset.smsPathItem;
-            if (button.dataset.smsKind === "folder") {
-              currentPrefix = path;
-              loadFileList();
-              return;
-            }
-            loadFileContent(path);
-          });
-        });
-      }
-
-      async function loadFileList() {
-        refreshButton.disabled = true;
-        setStatus("正在获取文件列表...");
-        list.innerHTML = `
-          <article class="sms-empty">
-            <strong>正在加载</strong>
-            <span>正在读取 ${escapeHtml(BUCKET_NAME)} 里的文件信息。</span>
-          </article>
-        `;
-
-        try {
-          const response = await fetch(`${SUPABASE_URL}/storage/v1/object/list/${encodeURIComponent(BUCKET_NAME)}`, {
-            method: "POST",
-            headers: storageHeaders("application/json"),
-            body: JSON.stringify({
-              prefix: currentPrefix,
-              limit: 100,
-              offset: 0,
-              sortBy: { column: "updated_at", order: "desc" },
-            }),
-          });
-          if (!response.ok) {
-            throw new Error(`列表读取失败：${response.status}`);
-          }
-          renderMessages(await response.json());
-          setStatus("文件列表已刷新。");
-        } catch (error) {
-          list.innerHTML = `
-            <article class="sms-empty">
-              <strong>列表读取失败</strong>
-              <span>${escapeHtml(error.message || "请稍后重试。")}</span>
-            </article>
-          `;
-          setStatus("文件列表读取失败。");
-        } finally {
-          refreshButton.disabled = false;
-        }
-      }
-
-      async function loadFileContent(path) {
-        fileTitle.textContent = path;
-        fileContent.textContent = "正在读取文件内容...";
-        setStatus("正在读取文件内容...");
-
-        try {
-          const response = await fetch(`${SUPABASE_URL}/storage/v1/object/${encodeURIComponent(BUCKET_NAME)}/${storageObjectPath(path)}`, {
-            headers: storageHeaders(),
-          });
-          if (!response.ok) {
-            throw new Error(`文件读取失败：${response.status}`);
-          }
-          fileContent.textContent = await response.text();
-          setStatus("文件内容已打开。");
-        } catch (error) {
-          fileContent.textContent = error.message || "文件读取失败。";
-          setStatus("文件内容读取失败。");
-        }
-      }
-
-      async function unlock() {
-        panel.hidden = false;
-        setStatus("已进入短信列表。");
-        loadFileList();
-      }
-
-      if (!PASSWORD_SHA256) {
-        input.disabled = true;
-        form.querySelector("button").disabled = true;
-      } else if (sessionStorage.getItem(SESSION_KEY) === "true") {
-        unlock();
-      }
-
-      form.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        if (!PASSWORD_SHA256) {
-          message.textContent = "密码还没有设置，暂时不能进入。";
-          return;
-        }
-        const digest = await sha256(input.value);
-        if (digest !== PASSWORD_SHA256) {
-          message.textContent = "密码不对，请再试一次。";
-          input.select();
-          return;
-        }
-        sessionStorage.setItem(SESSION_KEY, "true");
-        unlock();
-      });
-
-      refreshButton.addEventListener("click", loadFileList);
-      upButton.addEventListener("click", () => {
-        currentPrefix = parentPath(currentPrefix);
-        loadFileList();
-      });
-    </script>
+    <footer class="site-footer"><span>Personal toolbox</span><a href="personal-tools.html">回到个人工具</a></footer>
+    <script src="vault-api.js?v=20260825-vault1"></script>
+    <script src="sms-viewer.js?v=20260825-vault1"></script>
   </body>
 </html>

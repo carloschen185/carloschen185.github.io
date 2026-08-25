@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://hxpiiajuhcxettowruwr.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+    <meta http-equiv="Cache-Control" content="no-store, max-age=0">
+    <title>备用码保险箱 - 个人工具</title>
+    <meta name="description" content="端到端加密保存、查看和标记备用码。">
+    <meta name="theme-color" content="#fff4cf">
+    <link rel="stylesheet" href="styles.css?v=20260825-vault1">
+  </head>
+  <body data-page="backup-code-vault">
+    <header class="site-header" aria-label="工具导航">
+      <a class="brand" href="personal-tools.html" aria-label="回到个人工具">
+        <img class="vault-brand-icon" src="assets/backup-code-vault.png" alt="">
+        <span>备用码保险箱</span>
+      </a>
+      <nav class="nav-links" aria-label="页面导航">
+        <a href="personal-tools.html">个人工具</a>
+        <a href="./">主页</a>
+      </nav>
+    </header>
+
+    <main class="tool-page vault-page">
+      <section class="tool-hero vault-hero" aria-labelledby="vault-title">
+        <div>
+          <p class="eyebrow">Encrypted Recovery Kit</p>
+          <h1 id="vault-title">备用码保险箱</h1>
+          <p class="intro">在没带手机时取出一条备用码。内容只在这台设备的浏览器内解密，关闭或闲置后会自动锁定。</p>
+        </div>
+        <img src="assets/backup-code-vault.png" alt="打开的备用码保险箱" width="180" height="180">
+      </section>
+
+      <section class="tool-panel vault-login-panel" aria-labelledby="vault-login-title" data-vault-login-panel>
+        <div class="tool-panel-heading">
+          <span class="tool-panel-icon" aria-hidden="true">钥</span>
+          <div>
+            <p class="eyebrow">Password</p>
+            <h2 id="vault-login-title">解锁保险箱</h2>
+          </div>
+        </div>
+        <form class="tool-password-form" data-vault-login-form>
+          <label for="vault-password">与短信查看器相同的密码</label>
+          <div>
+            <input id="vault-password" type="password" autocomplete="current-password" required maxlength="256" placeholder="输入查看密码" data-vault-password>
+            <button class="button primary" type="submit" data-vault-login-button>解锁</button>
+          </div>
+          <p class="tool-form-note" role="status" aria-live="polite" data-vault-login-message>密码不会保存到这台设备。</p>
+        </form>
+      </section>
+
+      <section class="vault-workspace" data-vault-workspace hidden aria-label="备用码列表">
+        <div class="vault-toolbar">
+          <div>
+            <p class="eyebrow">Vault</p>
+            <strong data-vault-summary>保险箱已解锁</strong>
+          </div>
+          <div class="vault-toolbar-actions">
+            <button class="project-action" type="button" data-vault-refresh>刷新</button>
+            <button class="project-action vault-lock-button" type="button" data-vault-lock>立即锁定</button>
+          </div>
+        </div>
+
+        <div class="vault-layout">
+          <aside class="vault-groups" aria-label="备用码分组">
+            <div class="vault-section-title">
+              <span>分组</span>
+              <small data-vault-group-count>0</small>
+            </div>
+            <div class="vault-group-list" data-vault-groups></div>
+          </aside>
+
+          <section class="vault-codes" aria-labelledby="vault-current-group">
+            <div class="vault-code-heading">
+              <div>
+                <p class="eyebrow">Recovery Codes</p>
+                <h2 id="vault-current-group" data-vault-current-group>备用码</h2>
+                <p data-vault-current-description></p>
+              </div>
+              <div class="vault-filters" role="group" aria-label="状态筛选">
+                <button type="button" class="is-active" data-vault-filter="all">全部</button>
+                <button type="button" data-vault-filter="unused">未使用</button>
+                <button type="button" data-vault-filter="used">已使用</button>
+              </div>
+            </div>
+            <div class="vault-code-list" data-vault-codes></div>
+          </section>
+        </div>
+        <p class="vault-status" role="status" aria-live="polite" data-vault-status>已安全解锁。</p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>Encrypted in your browser</span>
+      <a href="personal-tools.html">回到个人工具</a>
+    </footer>
+
+    <script src="vault-api.js?v=20260825-vault1"></script>
+    <script src="backup-code-vault.js?v=20260825-vault1"></script>
+  </body>
+</html>
