@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://hxpiiajuhcxettowruwr.supabase.co; media-src 'self' blob: https://hxpiiajuhcxettowruwr.supabase.co; frame-src https://hxpiiajuhcxettowruwr.supabase.co; connect-src https://hxpiiajuhcxettowruwr.supabase.co https://hxpiiajuhcxettowruwr.storage.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+    <meta http-equiv="Cache-Control" content="no-store, max-age=0">
+    <title>文件投递箱 - 个人工具</title>
+    <meta name="description" content="跨设备上传、预览、下载和分享文件的私人投递箱。">
+    <meta name="theme-color" content="#fff4cf">
+    <link rel="stylesheet" href="styles.css?v=20260826-drop1">
+  </head>
+  <body data-page="file-drop">
+    <header class="site-header" aria-label="工具导航">
+      <a class="brand" href="personal-tools.html" aria-label="回到个人工具">
+        <img class="vault-brand-icon" src="assets/file-drop-box.png" alt="">
+        <span>文件投递箱</span>
+      </a>
+      <nav class="nav-links" aria-label="页面导航">
+        <a href="personal-tools.html">个人工具</a>
+        <a href="sms-viewer.html">短信查看器</a>
+        <a href="backup-code-vault.html">备用码保险箱</a>
+        <a href="./">主页</a>
+      </nav>
+    </header>
+
+    <main class="tool-page drop-page">
+      <section class="tool-hero drop-hero" aria-labelledby="drop-title">
+        <div>
+          <p class="eyebrow">Private Delivery Box</p>
+          <h1 id="drop-title">文件投递箱</h1>
+          <p class="intro">从手机或电脑把文件投递到这里，再在任何地方安全预览、下载或分享。</p>
+        </div>
+        <img src="assets/file-drop-box.png" alt="打开的文件投递箱" width="180" height="180">
+      </section>
+
+      <section class="tool-panel vault-login-panel" aria-labelledby="drop-login-title" data-drop-login-panel>
+        <div class="tool-panel-heading">
+          <span class="tool-panel-icon" aria-hidden="true">钥</span>
+          <div><p class="eyebrow">Password</p><h2 id="drop-login-title">打开投递箱</h2></div>
+        </div>
+        <form class="tool-password-form" data-drop-login-form>
+          <input type="text" name="username" value="personal-tools" autocomplete="username" hidden>
+          <label for="drop-password">与短信查看器、备用码保险箱相同的密码</label>
+          <div>
+            <input id="drop-password" type="password" autocomplete="current-password" maxlength="256" required placeholder="输入查看密码" data-drop-password>
+            <button class="button primary" type="submit" data-drop-login-button>进入</button>
+          </div>
+          <p class="tool-form-note" role="status" aria-live="polite" data-drop-login-message>密码不会保存在这台设备；会话有效 10 分钟。</p>
+        </form>
+      </section>
+
+      <section class="drop-workspace" data-drop-workspace hidden aria-label="文件投递箱工作区">
+        <div class="drop-topbar">
+          <div><p class="eyebrow">Drop Anywhere</p><strong data-drop-summary>投递箱已打开</strong></div>
+          <div class="vault-toolbar-actions">
+            <button class="project-action" type="button" data-drop-refresh>刷新</button>
+            <button class="project-action vault-lock-button" type="button" data-drop-lock>立即锁定</button>
+          </div>
+        </div>
+
+        <section class="drop-upload-panel" aria-labelledby="drop-upload-title">
+          <div class="drop-section-heading">
+            <div><p class="eyebrow">Upload</p><h2 id="drop-upload-title">投递文件</h2></div>
+            <span>单个文件最大 50 MB · 6 MB 分片续传</span>
+          </div>
+          <label class="drop-zone" data-drop-zone>
+            <input type="file" multiple data-drop-input>
+            <span class="drop-zone-icon" aria-hidden="true">＋</span>
+            <strong>拖到这里，或点一下选择文件</strong>
+            <small>支持一次选择多个文件，网络中断后重新选择同一文件可继续。</small>
+          </label>
+          <div class="drop-upload-queue" data-drop-upload-queue hidden></div>
+        </section>
+
+        <section class="drop-browser" aria-labelledby="drop-files-title">
+          <div class="drop-section-heading drop-browser-heading">
+            <div><p class="eyebrow">Files</p><h2 id="drop-files-title">最近文件</h2></div>
+            <label class="drop-search"><span class="sr-only">搜索文件</span><input type="search" placeholder="搜索文件名" data-drop-search></label>
+          </div>
+          <div class="drop-file-grid" data-drop-files></div>
+          <p class="vault-status" role="status" aria-live="polite" data-drop-status>准备就绪。</p>
+        </section>
+      </section>
+    </main>
+
+    <dialog class="drop-preview-dialog" data-drop-preview-dialog>
+      <div class="drop-dialog-head">
+        <div><p class="eyebrow">Preview</p><h2 data-drop-preview-title>文件预览</h2></div>
+        <button type="button" class="drop-icon-button" aria-label="关闭预览" data-drop-preview-close>×</button>
+      </div>
+      <div class="drop-preview-body" data-drop-preview-body></div>
+      <div class="drop-dialog-actions"><button class="button primary" type="button" data-drop-preview-download>下载文件</button></div>
+    </dialog>
+
+    <dialog class="drop-pattern-dialog" data-drop-pattern-dialog>
+      <div class="drop-dialog-head">
+        <div><p class="eyebrow">Delete Unlock</p><h2>验证删除图案</h2></div>
+        <button type="button" class="drop-icon-button" aria-label="取消删除" data-drop-pattern-close>×</button>
+      </div>
+      <p>连接至少 4 个点。验证后 5 分钟内可以连续删除。</p>
+      <div class="pattern-lock" data-pattern-lock aria-label="3×3 删除图案">
+        <svg aria-hidden="true" viewBox="0 0 300 300"><polyline data-pattern-line points=""></polyline></svg>
+        <div class="pattern-grid">
+          <button type="button" data-pattern-node="1" aria-label="图案点 1"></button><button type="button" data-pattern-node="2" aria-label="图案点 2"></button><button type="button" data-pattern-node="3" aria-label="图案点 3"></button>
+          <button type="button" data-pattern-node="4" aria-label="图案点 4"></button><button type="button" data-pattern-node="5" aria-label="图案点 5"></button><button type="button" data-pattern-node="6" aria-label="图案点 6"></button>
+          <button type="button" data-pattern-node="7" aria-label="图案点 7"></button><button type="button" data-pattern-node="8" aria-label="图案点 8"></button><button type="button" data-pattern-node="9" aria-label="图案点 9"></button>
+        </div>
+      </div>
+      <p class="drop-pattern-message" role="status" aria-live="polite" data-pattern-message>按住并滑过圆点，也可以依次点击圆点。</p>
+      <div class="drop-dialog-actions">
+        <button class="project-action" type="button" data-pattern-reset>重画</button>
+        <button class="button primary" type="button" data-pattern-submit>验证并删除</button>
+      </div>
+    </dialog>
+
+    <footer class="site-footer"><span>Private files, ready anywhere</span><a href="personal-tools.html">回到个人工具</a></footer>
+    <script src="vault-api.js?v=20260825-vault1"></script>
+    <script src="file-drop-api.js?v=20260826-drop1"></script>
+    <script src="vendor/tus-js-client-4.3.1.min.js?v=4.3.1"></script>
+    <script src="file-drop.js?v=20260826-drop1"></script>
+  </body>
+</html>

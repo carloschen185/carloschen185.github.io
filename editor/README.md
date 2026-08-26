@@ -25,6 +25,12 @@ cmake --build editor-build
 
 修改后点击“保存并同步”，程序会保存 `site-data.json`，自动复制到 `publish-pages` 发布仓库，并执行 `git add`、`git commit`、`git push` 更新 GitHub Pages。没有内容变化时不会创建新提交。
 
+## 文件投递箱删除图案
+
+“投递箱安全”页可以直接设置或修改网页端删除文件时使用的 3×3 连线图案。图案不会写入 `site-data.json`，editor 会通过 HTTPS 发送到 Supabase Edge Function，由服务端加盐哈希后保存。
+
+管理接口使用一把独立的高强度密钥。它只保存在 Windows 凭据管理器的 `SYSTEM-MEMZ-C/MyB/FileDropAdmin` 项中；源码、网页和 exe 都不包含密钥明文。正常情况下不需要重复输入，迁移电脑或重建凭据时可点击“重新输入本机管理密钥”。
+
 ## 外部库
 
 如果后续想接入外部库，可以在 `editor/CMakeLists.txt` 里添加，例如：

@@ -6,6 +6,7 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDir>
+#include <QEventLoop>
 #include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
@@ -17,10 +18,18 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QList>
+#include <QLineF>
+#include <QMap>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QMessageBox>
+#include <QMouseEvent>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <QNetworkRequest>
+#include <QPainter>
+#include <QPainterPath>
 #include <QProcess>
 #include <QPushButton>
 #include <QRegularExpression>
@@ -32,8 +41,119 @@
 #include <QTextEdit>
 #include <QToolBar>
 #include <QUrl>
+#include <QVector>
 #include <QVBoxLayout>
 #include <QWidget>
+
+#ifdef Q_OS_WIN
+#include <windows.h>
+#include <wincred.h>
+#endif
+
+class PatternWidget final : public QWidget {
+public:
+  explicit PatternWidget(QWidget *parent = nullptr) : QWidget(parent) {
+    setMinimumSize(280, 280);
+    setMaximumSize(360, 360);
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    setCursor(Qt::CrossCursor);
+  }
+
+  QVector<int> pattern() const { return points_; }
+
+  void clearPattern() {
+    points_.clear();
+    update();
+  }
+
+protected:
+  void paintEvent(QPaintEvent *) override {
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    const QRectF area = boardRect();
+    painter.setPen(QPen(QColor(226, 207, 177), 1));
+    painter.setBrush(QColor(255, 249, 232));
+    painter.drawRoundedRect(area, 22, 22);
+
+    if (points_.size() > 1) {
+      QPainterPath path;
+      path.moveTo(centerFor(points_.first()));
+      for (int index = 1; index < points_.size(); ++index) path.lineTo(centerFor(points_.at(index)));
+      painter.setPen(QPen(QColor(221, 110, 145, 176), 9, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+      painter.setBrush(Qt::NoBrush);
+      painter.drawPath(path);
+    }
+
+    for (int point = 1; point <= 9; ++point) {
+      const QPointF center = centerFor(point);
+      const bool selected = points_.contains(point);
+      painter.setPen(QPen(QColor(255, 255, 255), 7));
+      painter.setBrush(selected ? QColor(221, 110, 145) : QColor(194, 184, 178));
+      painter.drawEllipse(center, selected ? 14 : 12, selected ? 14 : 12);
+    }
+  }
+
+  void mousePressEvent(QMouseEvent *event) override {
+    if (event->button() != Qt::LeftButton) return;
+    clearPattern();
+    drawing_ = true;
+    addPoint(pointAt(event->position()));
+    event->accept();
+  }
+
+  void mouseMoveEvent(QMouseEvent *event) override {
+    if (!drawing_) return;
+    addPoint(pointAt(event->position()));
+    event->accept();
+  }
+
+  void mouseReleaseEvent(QMouseEvent *event) override {
+    if (event->button() == Qt::LeftButton) drawing_ = false;
+    event->accept();
+  }
+
+private:
+  QVector<int> points_;
+  bool drawing_ = false;
+
+  QRectF boardRect() const {
+    const qreal side = qMin(width(), height()) - 8.0;
+    return QRectF((width() - side) / 2.0, (height() - side) / 2.0, side, side);
+  }
+
+  QPointF centerFor(int point) const {
+    const QRectF area = boardRect();
+    const int index = point - 1;
+    return QPointF(area.left() + area.width() * (0.166666 + (index % 3) * 0.333333),
+                   area.top() + area.height() * (0.166666 + (index / 3) * 0.333333));
+  }
+
+  int pointAt(const QPointF &position) const {
+    qreal best = 34.0;
+    int result = 0;
+    for (int point = 1; point <= 9; ++point) {
+      const qreal distance = QLineF(position, centerFor(point)).length();
+      if (distance < best) { best = distance; result = point; }
+    }
+    return result;
+  }
+
+  void addPoint(int point) {
+    if (!point || points_.contains(point)) return;
+    if (!points_.isEmpty()) {
+      const int left = points_.last();
+      const QMap<QPair<int, int>, int> middles = {
+          {{1, 3}, 2}, {{3, 1}, 2}, {{1, 7}, 4}, {{7, 1}, 4}, {{3, 9}, 6}, {{9, 3}, 6},
+          {{7, 9}, 8}, {{9, 7}, 8}, {{1, 9}, 5}, {{9, 1}, 5}, {{3, 7}, 5}, {{7, 3}, 5},
+          {{2, 8}, 5}, {{8, 2}, 5}, {{4, 6}, 5}, {{6, 4}, 5},
+      };
+      const int middle = middles.value({left, point}, 0);
+      if (middle && !points_.contains(middle)) points_.append(middle);
+    }
+    points_.append(point);
+    update();
+  }
+};
 
 class SiteInfoEditor : public QMainWindow {
 public:
@@ -108,6 +228,8 @@ private:
   QTableWidget *collectionTable_ = nullptr;
   QTableWidget *projectsTable_ = nullptr;
   QTableWidget *gamesTable_ = nullptr;
+  PatternWidget *fileDropPattern_ = nullptr;
+  QLabel *fileDropSecurityStatus_ = nullptr;
 
   struct CommandResult {
     bool ok = false;
@@ -138,6 +260,7 @@ private:
     tabs->addTab(buildCollectionTab(), QStringLiteral("收藏夹"));
     tabs->addTab(buildProjectsTab(), QStringLiteral("想展示的东西"));
     tabs->addTab(buildGamesTab(), QStringLiteral("开源小游戏"));
+    tabs->addTab(buildFileDropSecurityTab(), QStringLiteral("投递箱安全"));
     setCentralWidget(tabs);
   }
 
@@ -265,6 +388,52 @@ private:
     return page;
   }
 
+  QWidget *buildFileDropSecurityTab() {
+    auto *page = new QWidget;
+    auto *layout = new QVBoxLayout(page);
+    auto *content = new QWidget;
+    auto *contentLayout = new QHBoxLayout(content);
+    auto *copy = new QWidget;
+    auto *copyLayout = new QVBoxLayout(copy);
+    auto *title = new QLabel(QStringLiteral("设置 3×3 删除图案"));
+    title->setStyleSheet(QStringLiteral("font-size: 20px; font-weight: 800;"));
+    auto *description = new QLabel(QStringLiteral("按住鼠标连接至少 4 个点。跨过尚未选择的中间点时会自动补点，与网页端规则一致。保存后，所有已有的 5 分钟删除许可会立即失效。"));
+    description->setWordWrap(true);
+    description->setStyleSheet(QStringLiteral("color: #6d5961; line-height: 1.5;"));
+    auto *save = new QPushButton(QStringLiteral("设置 / 修改删除图案"));
+    save->setMinimumHeight(38);
+    auto *clear = new QPushButton(QStringLiteral("重画"));
+    clear->setMinimumHeight(38);
+    auto *credential = new QPushButton(QStringLiteral("重新输入本机管理密钥"));
+    credential->setMinimumHeight(34);
+    fileDropSecurityStatus_ = new QLabel(QStringLiteral("管理密钥只保存在 Windows 凭据管理器，不会写入 site-data.json、源码或 exe。"));
+    fileDropSecurityStatus_->setWordWrap(true);
+    fileDropSecurityStatus_->setStyleSheet(QStringLiteral("padding: 10px; border-radius: 8px; background: #e7fbf4; color: #4f665c;"));
+    copyLayout->addWidget(title);
+    copyLayout->addWidget(description);
+    copyLayout->addSpacing(12);
+    copyLayout->addWidget(save);
+    copyLayout->addWidget(clear);
+    copyLayout->addWidget(credential);
+    copyLayout->addStretch();
+    copyLayout->addWidget(fileDropSecurityStatus_);
+
+    fileDropPattern_ = new PatternWidget;
+    contentLayout->addWidget(copy, 1);
+    contentLayout->addWidget(fileDropPattern_, 0, Qt::AlignCenter);
+    layout->addWidget(hint(QStringLiteral("这是本机管理功能，不需要网页文字密码或旧图案。远程接口仍由一把独立的高强度管理密钥保护。")));
+    layout->addWidget(content);
+
+    connect(clear, &QPushButton::clicked, fileDropPattern_, [this] { fileDropPattern_->clearPattern(); });
+    connect(credential, &QPushButton::clicked, this, [this] { configureFileDropCredential(); });
+    connect(save, &QPushButton::clicked, this, [this, save] {
+      save->setDisabled(true);
+      saveFileDropPattern();
+      save->setDisabled(false);
+    });
+    return page;
+  }
+
   QLineEdit *line() const {
     auto *widget = new QLineEdit;
     widget->setMinimumHeight(30);
@@ -386,6 +555,100 @@ private:
       setItemText(tableWidget, target, column, rowValues.value(column));
     }
     tableWidget->selectRow(target);
+  }
+
+  static QString fileDropCredentialTarget() {
+    return QStringLiteral("SYSTEM-MEMZ-C/MyB/FileDropAdmin");
+  }
+
+  static QString readFileDropCredential() {
+#ifdef Q_OS_WIN
+    PCREDENTIALW credential = nullptr;
+    const std::wstring target = fileDropCredentialTarget().toStdWString();
+    if (!CredReadW(target.c_str(), CRED_TYPE_GENERIC, 0, &credential) || !credential) return {};
+    const int characters = static_cast<int>(credential->CredentialBlobSize / sizeof(wchar_t));
+    const QString value = QString::fromWCharArray(reinterpret_cast<const wchar_t *>(credential->CredentialBlob), characters);
+    CredFree(credential);
+    return value;
+#else
+    return {};
+#endif
+  }
+
+  static bool writeFileDropCredential(const QString &value) {
+#ifdef Q_OS_WIN
+    const std::wstring target = fileDropCredentialTarget().toStdWString();
+    const std::wstring username = L"file-drop-editor";
+    const std::wstring secret = value.toStdWString();
+    CREDENTIALW credential{};
+    credential.Type = CRED_TYPE_GENERIC;
+    credential.TargetName = const_cast<LPWSTR>(target.c_str());
+    credential.UserName = const_cast<LPWSTR>(username.c_str());
+    credential.CredentialBlobSize = static_cast<DWORD>(secret.size() * sizeof(wchar_t));
+    credential.CredentialBlob = reinterpret_cast<LPBYTE>(const_cast<wchar_t *>(secret.data()));
+    credential.Persist = CRED_PERSIST_LOCAL_MACHINE;
+    return CredWriteW(&credential, 0);
+#else
+    Q_UNUSED(value);
+    return false;
+#endif
+  }
+
+  void configureFileDropCredential() {
+    bool accepted = false;
+    const QString key = QInputDialog::getText(this, QStringLiteral("本机管理密钥"),
+                                              QStringLiteral("输入与服务端配置匹配的管理密钥："),
+                                              QLineEdit::Password, QString(), &accepted).trimmed();
+    if (!accepted) return;
+    if (key.size() < 32) {
+      QMessageBox::warning(this, QStringLiteral("密钥太短"), QStringLiteral("管理密钥至少需要 32 个字符。"));
+      return;
+    }
+    if (!writeFileDropCredential(key)) {
+      QMessageBox::warning(this, QStringLiteral("保存失败"), QStringLiteral("无法写入 Windows 凭据管理器。"));
+      return;
+    }
+    fileDropSecurityStatus_->setText(QStringLiteral("本机管理密钥已安全更新。现在可以保存删除图案。"));
+  }
+
+  void saveFileDropPattern() {
+    const QVector<int> points = fileDropPattern_->pattern();
+    if (points.size() < 4) {
+      QMessageBox::warning(this, QStringLiteral("图案太短"), QStringLiteral("删除图案至少需要连接 4 个点。"));
+      return;
+    }
+    QString adminKey = readFileDropCredential();
+    if (adminKey.isEmpty()) {
+      configureFileDropCredential();
+      adminKey = readFileDropCredential();
+      if (adminKey.isEmpty()) return;
+    }
+
+    QJsonArray pattern;
+    for (const int point : points) pattern.append(point);
+    QNetworkRequest request(QUrl(QStringLiteral("https://hxpiiajuhcxettowruwr.supabase.co/functions/v1/file-drop/admin/pattern")));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+    request.setRawHeader("apikey", "sb_publishable_QdxPn4rf55Tg32WkcVtvcA_me46GA8M");
+    request.setRawHeader("X-File-Drop-Admin", adminKey.toUtf8());
+
+    QNetworkAccessManager manager;
+    QNetworkReply *reply = manager.put(request, QJsonDocument(QJsonObject{{QStringLiteral("pattern"), pattern}}).toJson(QJsonDocument::Compact));
+    QEventLoop loop;
+    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    const QByteArray bytes = reply->readAll();
+    const QJsonObject response = QJsonDocument::fromJson(bytes).object();
+    const bool ok = reply->error() == QNetworkReply::NoError;
+    const QString error = response.value(QStringLiteral("error")).toString();
+    reply->deleteLater();
+    if (!ok) {
+      fileDropSecurityStatus_->setText(QStringLiteral("保存失败：") + (error.isEmpty() ? QStringLiteral("请检查网络和管理密钥。") : error));
+      QMessageBox::warning(this, QStringLiteral("删除图案保存失败"), fileDropSecurityStatus_->text());
+      return;
+    }
+    fileDropPattern_->clearPattern();
+    fileDropSecurityStatus_->setText(QStringLiteral("删除图案已更新；网页端现有删除许可已全部失效。"));
+    QMessageBox::information(this, QStringLiteral("保存成功"), QStringLiteral("文件投递箱的删除图案已安全更新。"));
   }
 
   void chooseAndOpen() {

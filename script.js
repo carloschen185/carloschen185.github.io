@@ -101,6 +101,14 @@ const defaultData = {
       href: "backup-code-vault.html",
       actionLabel: "打开保险箱",
     },
+    {
+      iconImage: "assets/file-drop-box.png",
+      title: "文件投递箱",
+      text: "从手机或电脑上传文件，在其他地方在线浏览、下载、删除，或生成长期有效的下载链接。",
+      tags: ["文件投递", "跨设备", "安全分享"],
+      href: "file-drop.html",
+      actionLabel: "打开投递箱",
+    },
   ],
   games: [
     {
@@ -256,7 +264,7 @@ function normalizeData(rawData) {
     },
     hero: {
       eyebrow: hero.eyebrow,
-      title: `这里是 ${shortName} 的小主页！^ - ^`,
+      title: `这里是 ${shortName} 的小小主页。`,
       titleName: shortName,
       intro: person.heroIntro,
       primaryButtonText: hero.primaryButtonText,
@@ -337,7 +345,7 @@ function renderHeroTitle(hero) {
   }
   const fallbackName = hero.title?.replace(/^这里是\s*/, "").replace(/\s*的小主页！\^ - \^$/, "") || "";
   const name = hero.titleName || fallbackName;
-node.innerHTML = `这里是 <span class="hero-name">${escapeHtml(name)}</span> 的小主页！^ - ^`;
+  node.innerHTML = `这里是 <span class="hero-name">${escapeHtml(name)}</span> 的小主页！^ - ^`;
 }
 
 function setAttr(selector, attr, value) {
@@ -1086,7 +1094,6 @@ function initOpeningAnimation() {
     }, transitionDuration);
   };
 
-  screen.querySelector("[data-opening-skip]")?.addEventListener("click", finish);
   window.setTimeout(finish, duration);
 }
 

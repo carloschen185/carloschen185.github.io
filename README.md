@@ -22,6 +22,7 @@ python -m http.server 8000
 - 收藏夹、项目卡片、联系方式渲染：`script.js`
 - 首屏插画：`assets/hero-cute.jpg`
 - Qt/C++ 信息编辑器：`editor/`
+- 文件投递箱：`file-drop.html`、`file-drop.js`、`file-drop-api.js`
 
 ## 信息编辑器
 
@@ -40,3 +41,9 @@ cmake --build editor-build
 ```text
 https://carloschen185.github.io/
 ```
+
+## 文件投递箱后端
+
+文件投递箱使用 Supabase 私有 Storage 桶和 `file-drop` Edge Function。数据库结构在 `supabase/file-drop.sql`，Edge Function 在 `supabase/functions/file-drop/`。单文件限制为 50 MiB，浏览器使用固定版本的 `tus-js-client` 做 6 MiB 分片续传。
+
+删除图案通过本机 editor 设置。数据库只保存图案的 PBKDF2 哈希及本机管理密钥的 SHA-256 哈希；管理密钥明文只存在 Windows 凭据管理器中。
