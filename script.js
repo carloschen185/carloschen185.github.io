@@ -638,6 +638,10 @@ function isSplitVideoPath(path) {
   return /\.split\.json($|[?#])/.test(String(path ?? ""));
 }
 
+function isStreamVideoPath(path) {
+  return /\.stream\.json($|[?#])/.test(String(path ?? ""));
+}
+
 function mediaFolderLabel(path, rootPrefix) {
   const clean = String(path ?? "").split(/[?#]/)[0];
   if (!clean.startsWith(rootPrefix)) {
@@ -664,11 +668,12 @@ async function applyVideoSource(video, sourcePath) {
     video.load();
     return "";
   }
-  if (isSplitVideoPath(sourcePath)) {
+  if (isSplitVideoPath(sourcePath) || isStreamVideoPath(sourcePath)) {
     if (!window.SplitVideoLoader) throw new Error("split video loader unavailable");
     return window.SplitVideoLoader.attach(video, sourcePath);
   }
   video.src = sourcePath;
+  video.load();
   return sourcePath;
 }
 
@@ -711,7 +716,6 @@ async function setCinemaItem(item) {
   try {
     await applyVideoSource(player, item.video || "");
     if (loadToken !== cinemaLoadToken) return;
-    player.load();
     if (title) {
       title.textContent = item.title || "未命名视频";
     }
@@ -733,7 +737,7 @@ function renderCinema(cinemaItems) {
   }
 
   const items = (cinemaItems ?? []).filter((item) => item?.video);
-  items.filter((item) => isSplitVideoPath(item.video)).forEach((item) => {
+  items.filter((item) => isSplitVideoPath(item.video) || isStreamVideoPath(item.video)).forEach((item) => {
     window.SplitVideoLoader?.preload(item.video).catch(() => {});
   });
   if (!items.length) {
@@ -829,7 +833,6 @@ function renderShortVideos(shortVideos) {
       try {
         await applyVideoSource(video, item.video);
         video.dataset.loadedSource = item.video;
-        video.load();
         if (playAfterLoad) {
           video.play().catch(() => {});
         }
@@ -838,7 +841,7 @@ function renderShortVideos(shortVideos) {
         video.addEventListener("click", () => load(true), { once: true });
       }
     };
-    if (isSplitVideoPath(item.video)) {
+    if (isSplitVideoPath(item.video) || isStreamVideoPath(item.video)) {
       window.SplitVideoLoader?.preload(item.video).catch(() => {});
       load(false);
     } else {

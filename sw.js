@@ -1,13 +1,13 @@
 importScripts("js/split-video-core.js");
 
-const STATIC_CACHE = "site-static-v3";
+const STATIC_CACHE = "site-static-v4";
 const metadataCache = new Map();
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
   event.waitUntil(caches.open(STATIC_CACHE).then((cache) => cache.addAll([
     "./", "./index.html", "./script.js", "./styles.css",
-    "./js/split-video-core.js", "./js/split-video-loader.js",
+    "./js/split-video-core.js", "./js/split-video-loader.js", "./vendor/hls/hls.min.js",
   ])).catch(() => {}));
 });
 

@@ -11,7 +11,8 @@
     if (!manifestCache.has(absolute)) {
       manifestCache.set(absolute, fetch(absolute, { cache: "no-cache" }).then(async (response) => {
         if (!response.ok) throw new Error(`分片清单加载失败 (${response.status})`);
-        return core.validateManifest(await response.json());
+        const value = await response.json();
+        return value?.kind === "hls-video" ? core.validateHlsManifest(value) : core.validateManifest(value);
       }).catch((error) => {
         manifestCache.delete(absolute);
         throw error;
@@ -62,6 +63,7 @@
 
   function detach(video) {
     const attached = attachedSources.get(video);
+    if (attached?.hls) attached.hls.destroy();
     if (attached?.objectUrl) URL.revokeObjectURL(attached.objectUrl);
     attachedSources.delete(video);
     video.removeAttribute("src");
@@ -72,9 +74,46 @@
     const state = { source: "" };
     attachedSources.set(video, state);
     video.preload = "auto";
-    const manifestPromise = loadManifest(manifestPath);
+    const manifest = await loadManifest(manifestPath);
+    if (attachedSources.get(video) !== state) return "";
+    if (manifest.kind === "hls-video") {
+      const master = new URL(manifest.master, document.baseURI).href;
+      if (root.Hls?.isSupported()) {
+        const hls = new root.Hls({
+          startLevel: 0,
+          capLevelToPlayerSize: true,
+          maxBufferLength: 20,
+          maxMaxBufferLength: 40,
+          backBufferLength: 10,
+          abrEwmaDefaultEstimate: 2000000,
+          startFragPrefetch: true,
+          enableWorker: true,
+        });
+        state.hls = hls;
+        hls.on(root.Hls.Events.LEVEL_SWITCHED, (_, data) => {
+          const level = hls.levels[data.level];
+          if (level) video.dataset.streamQuality = `${level.height || "?"}p`;
+        });
+        hls.on(root.Hls.Events.ERROR, (_, data) => {
+          if (!data.fatal) return;
+          if (data.type === root.Hls.ErrorTypes.NETWORK_ERROR) hls.startLoad();
+          else if (data.type === root.Hls.ErrorTypes.MEDIA_ERROR) hls.recoverMediaError();
+          else hls.destroy();
+        });
+        hls.loadSource(master);
+        hls.attachMedia(video);
+        state.source = master;
+        return master;
+      }
+      if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        state.source = master;
+        video.src = master;
+        video.load();
+        return master;
+      }
+      throw new Error("当前浏览器不支持 HLS 或 MediaSource");
+    }
     const controlled = await ensureWorker();
-    const manifest = await manifestPromise;
     if (attachedSources.get(video) !== state) return "";
     if (controlled && navigator.serviceWorker.controller) {
       const source = core.virtualVideoUrl(manifestPath, document.baseURI);
@@ -96,7 +135,6 @@
   }
 
   function preload(manifestPath) {
-    ensureWorker();
     return loadManifest(manifestPath);
   }
 

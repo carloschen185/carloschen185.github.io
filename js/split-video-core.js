@@ -25,6 +25,15 @@
     };
   }
 
+  function validateHlsManifest(value) {
+    if (!value || value.kind !== "hls-video" || !String(value.master || "").endsWith(".m3u8")) {
+      throw new Error("无效的 HLS 视频清单");
+    }
+    const master = String(value.master).trim();
+    if (!master || master.includes("..") || /^([a-z]+:|\/)/i.test(master)) throw new Error("HLS 清单包含不安全路径");
+    return { kind: "hls-video", master, variants: Array.isArray(value.variants) ? value.variants : [] };
+  }
+
   function parseByteRange(header, totalSize) {
     if (!Number.isSafeInteger(totalSize) || totalSize <= 0) throw new Error("无效的视频总大小");
     if (!header) return { start: 0, end: totalSize - 1, partial: false };
@@ -68,5 +77,5 @@
     return url.href;
   }
 
-  return { validateManifest, parseByteRange, mapRangeToParts, virtualVideoUrl };
+  return { validateManifest, validateHlsManifest, parseByteRange, mapRangeToParts, virtualVideoUrl };
 });
