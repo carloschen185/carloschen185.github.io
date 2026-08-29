@@ -230,6 +230,10 @@
         "shortVideosTitle": "视频展示"
     },
     "shortVideos": [
+        {
+            "title": "迷你人能飞",
+            "video": "media/short-videos/694907edb14225383e9808ad0aa9e0397a5d509ccd999cfdc7e4880c9ead8e95.split.json"
+        }
     ],
     "site": {
         "heroImage": "assets/hero-cute.jpg",
