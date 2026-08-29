@@ -1,6 +1,25 @@
 {
     "kind": "split-video",
     "mime": "video/mp4",
+    "size": 706988386,
+    "partSize": 50331648,
+    "partSizes": [
+        50331648,
+        50331648,
+        50331648,
+        50331648,
+        50331648,
+        50331648,
+        50331648,
+        50331648,
+        50331648,
+        50331648,
+        50331648,
+        50331648,
+        50331648,
+        50331648,
+        2345314
+    ],
     "parts": [
         "media/short-videos/694907edb14225383e9808ad0aa9e0397a5d509ccd999cfdc7e4880c9ead8e95.part000",
         "media/short-videos/694907edb14225383e9808ad0aa9e0397a5d509ccd999cfdc7e4880c9ead8e95.part001",

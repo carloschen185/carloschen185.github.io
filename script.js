@@ -650,30 +650,11 @@ function mediaFolderLabel(path, rootPrefix) {
 }
 
 function clearVideoObjectUrl(video) {
-  if (video?.dataset.objectUrl) {
-    URL.revokeObjectURL(video.dataset.objectUrl);
-    delete video.dataset.objectUrl;
+  if (video && window.SplitVideoLoader) {
+    window.SplitVideoLoader.detach(video);
+  } else if (video) {
+    video.removeAttribute("src");
   }
-}
-
-async function buildSplitVideoUrl(manifestPath) {
-  const manifestResponse = await fetch(manifestPath, { cache: "no-cache" });
-  if (!manifestResponse.ok) {
-    throw new Error(`manifest ${manifestResponse.status}`);
-  }
-  const manifest = await manifestResponse.json();
-  if (manifest.kind !== "split-video" || !Array.isArray(manifest.parts)) {
-    throw new Error("bad manifest");
-  }
-  const buffers = [];
-  for (const part of manifest.parts) {
-    const partResponse = await fetch(part);
-    if (!partResponse.ok) {
-      throw new Error(`part ${partResponse.status}`);
-    }
-    buffers.push(await partResponse.arrayBuffer());
-  }
-  return URL.createObjectURL(new Blob(buffers, { type: manifest.mime || "video/mp4" }));
 }
 
 async function applyVideoSource(video, sourcePath) {
@@ -684,10 +665,8 @@ async function applyVideoSource(video, sourcePath) {
     return "";
   }
   if (isSplitVideoPath(sourcePath)) {
-    const objectUrl = await buildSplitVideoUrl(sourcePath);
-    video.dataset.objectUrl = objectUrl;
-    video.src = objectUrl;
-    return objectUrl;
+    if (!window.SplitVideoLoader) throw new Error("split video loader unavailable");
+    return window.SplitVideoLoader.attach(video, sourcePath);
   }
   video.src = sourcePath;
   return sourcePath;
@@ -731,10 +710,7 @@ async function setCinemaItem(item) {
   }
   try {
     await applyVideoSource(player, item.video || "");
-    if (loadToken !== cinemaLoadToken) {
-      clearVideoObjectUrl(player);
-      return;
-    }
+    if (loadToken !== cinemaLoadToken) return;
     player.load();
     if (title) {
       title.textContent = item.title || "未命名视频";
@@ -757,6 +733,9 @@ function renderCinema(cinemaItems) {
   }
 
   const items = (cinemaItems ?? []).filter((item) => item?.video);
+  items.filter((item) => isSplitVideoPath(item.video)).forEach((item) => {
+    window.SplitVideoLoader?.preload(item.video).catch(() => {});
+  });
   if (!items.length) {
     player.removeAttribute("src");
     player.removeAttribute("poster");
@@ -798,13 +777,9 @@ function renderCinema(cinemaItems) {
       setCinemaItem(items[Number(button.dataset.cinemaIndex)]);
     });
   });
-  player.pause();
-  player.removeAttribute("src");
-  player.removeAttribute("poster");
-  clearVideoObjectUrl(player);
-  player.innerHTML = "";
-  setText("[data-cinema-current-title]", "请选择一部影片");
-  setText("[data-cinema-current-description]", "点右侧片单中的影片后再开始加载，这样打开主页时不会自动下载大视频。");
+  const firstButton = list.querySelector('[data-cinema-index="0"]');
+  firstButton?.classList.add("is-active");
+  setCinemaItem(items[0]);
 }
 
 function renderShortVideos(shortVideos) {
@@ -828,8 +803,7 @@ function renderShortVideos(shortVideos) {
       (item, index) => `
         <article class="short-video-card" data-short-video-index="${index}">
           <div class="short-video-frame">
-            <video class="short-video-player" controls playsinline preload="metadata" ${item.poster ? `poster="${escapeHtml(item.poster)}"` : ""}></video>
-            ${isSplitVideoPath(item.video) ? `<button class="short-video-load" type="button">加载分片视频</button>` : ""}
+            <video class="short-video-player" controls playsinline preload="auto" ${item.poster ? `poster="${escapeHtml(item.poster)}"` : ""}></video>
           </div>
           <div class="short-video-copy">
             <h3>${escapeHtml(item.title || "未命名视频")}</h3>
@@ -845,7 +819,6 @@ function renderShortVideos(shortVideos) {
   container.querySelectorAll("[data-short-video-index]").forEach((card) => {
     const item = items[Number(card.dataset.shortVideoIndex)];
     const video = card.querySelector("video");
-    const loadButton = card.querySelector(".short-video-load");
     const load = async (playAfterLoad) => {
       if (video.dataset.loadedSource === item.video) {
         if (playAfterLoad) {
@@ -853,30 +826,21 @@ function renderShortVideos(shortVideos) {
         }
         return;
       }
-      if (loadButton) {
-        loadButton.textContent = "正在加载...";
-        loadButton.disabled = true;
-      }
       try {
         await applyVideoSource(video, item.video);
         video.dataset.loadedSource = item.video;
         video.load();
-        if (loadButton) {
-          loadButton.remove();
-        }
         if (playAfterLoad) {
           video.play().catch(() => {});
         }
       } catch (error) {
-        if (loadButton) {
-          loadButton.textContent = "加载失败，重试";
-          loadButton.disabled = false;
-        }
+        video.setAttribute("aria-label", "视频加载失败，点击重试");
+        video.addEventListener("click", () => load(true), { once: true });
       }
     };
     if (isSplitVideoPath(item.video)) {
-      loadButton?.addEventListener("click", () => load(true));
-      video.addEventListener("click", () => load(false), { once: true });
+      window.SplitVideoLoader?.preload(item.video).catch(() => {});
+      load(false);
     } else {
       load(false);
     }
