@@ -77,5 +77,11 @@
     return url.href;
   }
 
-  return { validateManifest, validateHlsManifest, parseByteRange, mapRangeToParts, virtualVideoUrl };
+  function filterShortMediaItems(value) {
+    if (!Array.isArray(value)) return [];
+    return value.filter((item) => item && typeof item === "object" &&
+      (String(item.video || "").trim() || String(item.poster || "").trim()));
+  }
+
+  return { validateManifest, validateHlsManifest, parseByteRange, mapRangeToParts, virtualVideoUrl, filterShortMediaItems };
 });

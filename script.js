@@ -791,7 +791,8 @@ function renderShortVideos(shortVideos) {
   if (!container) {
     return;
   }
-  const items = (shortVideos ?? []).filter((item) => item?.video);
+  const items = window.SplitVideoCore?.filterShortMediaItems(shortVideos) ??
+    (shortVideos ?? []).filter((item) => item?.video || item?.poster);
   if (!items.length) {
     container.innerHTML = `
       <div class="short-video-empty">
@@ -807,12 +808,14 @@ function renderShortVideos(shortVideos) {
       (item, index) => `
         <article class="short-video-card" data-short-video-index="${index}">
           <div class="short-video-frame">
-            <video class="short-video-player" controls playsinline preload="auto" ${item.poster ? `poster="${escapeHtml(item.poster)}"` : ""}></video>
+            ${item.video
+              ? `<video class="short-video-player" controls playsinline preload="auto" ${item.poster ? `poster="${escapeHtml(item.poster)}"` : ""}></video>`
+              : `<img class="short-video-image" src="${escapeHtml(item.poster)}" alt="${escapeHtml(item.title || "未命名图片")}" loading="lazy" decoding="async">`}
           </div>
           <div class="short-video-copy">
-            <h3>${escapeHtml(item.title || "未命名视频")}</h3>
-            ${mediaFolderLabel(item.video, "media/short-videos") ? `<b class="media-path">${escapeHtml(mediaFolderLabel(item.video, "media/short-videos"))}</b>` : ""}
-            <p>${escapeHtml(item.description || "点击播放这个短视频。")}</p>
+            <h3>${escapeHtml(item.title || (item.video ? "未命名视频" : "未命名图片"))}</h3>
+            ${mediaFolderLabel(item.video || item.poster, "media/short-videos") ? `<b class="media-path">${escapeHtml(mediaFolderLabel(item.video || item.poster, "media/short-videos"))}</b>` : ""}
+            <p>${escapeHtml(item.description || (item.video ? "点击播放这个短视频。" : "图片展示。"))}</p>
             ${(item.tags ?? []).length ? `<div>${(item.tags ?? []).map((tag) => `<span>${escapeHtml(tag)}</span>`).join("")}</div>` : ""}
           </div>
         </article>
@@ -823,6 +826,7 @@ function renderShortVideos(shortVideos) {
   container.querySelectorAll("[data-short-video-index]").forEach((card) => {
     const item = items[Number(card.dataset.shortVideoIndex)];
     const video = card.querySelector("video");
+    if (!item.video || !video) return;
     const load = async (playAfterLoad) => {
       if (video.dataset.loadedSource === item.video) {
         if (playAfterLoad) {

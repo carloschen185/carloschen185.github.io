@@ -911,6 +911,14 @@ h3 {
   object-fit: cover;
 }
 
+.short-video-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #f8eee8;
+  object-fit: contain;
+}
+
 .short-video-load {
   position: absolute;
   left: 12px;
