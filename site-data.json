@@ -231,18 +231,6 @@
     },
     "shortVideos": [
         {
-            "title": "迷你人能飞",
-            "video": "media/short-videos/a86e371982e2e0a20f3311138cc73ee95f31da5f2a71969bdbdc11f40edc94cc.stream.json"
-        },
-        {
-            "title": "永劫人能飞",
-            "video": "media/short-videos/1b1a78d7f4f10addb97739c7c2fe858b8bfe8595a560f1eb529ca18ef779a8f9.stream.json"
-        },
-        {
-            "title": "难绷",
-            "video": "media/short-videos/9852cc477747bfebfbe3daa5d249d51e2940dc86c34a8290d22397de69adf718.stream.json"
-        },
-        {
             "poster": "media/short-videos/d16187f66c65d5286907cda642fea9dc3ef68e2d73fb3b4acd52288f4e4bfb2e.jpg",
             "title": "chc",
             "video": ""
@@ -263,6 +251,18 @@
             "poster": "",
             "title": "经典重温",
             "video": "media/short-videos/49bad9572d0f1ed8a0ae8b97fb22519927f4b31e44633491810855cc3eb4c187.stream.json"
+        },
+        {
+            "title": "迷你人能飞",
+            "video": "media/short-videos/a86e371982e2e0a20f3311138cc73ee95f31da5f2a71969bdbdc11f40edc94cc.stream.json"
+        },
+        {
+            "title": "永劫人能飞",
+            "video": "media/short-videos/1b1a78d7f4f10addb97739c7c2fe858b8bfe8595a560f1eb529ca18ef779a8f9.stream.json"
+        },
+        {
+            "title": "难绷",
+            "video": "media/short-videos/9852cc477747bfebfbe3daa5d249d51e2940dc86c34a8290d22397de69adf718.stream.json"
         }
     ],
     "site": {
