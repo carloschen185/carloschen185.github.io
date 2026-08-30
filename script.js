@@ -810,7 +810,10 @@ function renderShortVideos(shortVideos) {
           <div class="short-video-frame">
             ${item.video
               ? `<video class="short-video-player" controls playsinline preload="auto" ${item.poster ? `poster="${escapeHtml(item.poster)}"` : ""}></video>`
-              : `<img class="short-video-image" src="${escapeHtml(item.poster)}" alt="${escapeHtml(item.title || "未命名图片")}" loading="lazy" decoding="async">`}
+              : `<button class="short-video-image-button" type="button" data-short-image="${escapeHtml(item.poster)}" data-short-image-title="${escapeHtml(item.title || "未命名图片")}" aria-label="放大查看 ${escapeHtml(item.title || "未命名图片")}">
+                  <img class="short-video-image" src="${escapeHtml(item.poster)}" alt="${escapeHtml(item.title || "未命名图片")}" loading="lazy" decoding="async">
+                  <span aria-hidden="true">点击放大</span>
+                </button>`}
           </div>
           <div class="short-video-copy">
             <h3>${escapeHtml(item.title || (item.video ? "未命名视频" : "未命名图片"))}</h3>
@@ -852,6 +855,46 @@ function renderShortVideos(shortVideos) {
       load(false);
     }
   });
+  container.querySelectorAll("[data-short-image]").forEach((button) => {
+    button.addEventListener("click", () => openImageLightbox(button.dataset.shortImage, button.dataset.shortImageTitle));
+  });
+}
+
+function openImageLightbox(source, title) {
+  let dialog = document.querySelector("[data-image-lightbox]");
+  if (!dialog) {
+    dialog = document.createElement("dialog");
+    dialog.className = "image-lightbox";
+    dialog.dataset.imageLightbox = "";
+    dialog.innerHTML = `
+      <div class="image-lightbox-panel">
+        <div class="image-lightbox-toolbar">
+          <strong data-image-lightbox-title></strong>
+          <div>
+            <a data-image-lightbox-original target="_blank" rel="noreferrer">查看原图</a>
+            <button type="button" data-image-lightbox-close aria-label="关闭大图">关闭</button>
+          </div>
+        </div>
+        <div class="image-lightbox-stage">
+          <img data-image-lightbox-image alt="">
+        </div>
+      </div>`;
+    document.body.append(dialog);
+    dialog.querySelector("[data-image-lightbox-close]").addEventListener("click", () => dialog.close());
+    dialog.addEventListener("click", (event) => {
+      if (event.target === dialog) dialog.close();
+    });
+    dialog.addEventListener("close", () => {
+      dialog.querySelector("[data-image-lightbox-image]").removeAttribute("src");
+    });
+  }
+  const safeTitle = title || "图片预览";
+  const image = dialog.querySelector("[data-image-lightbox-image]");
+  dialog.querySelector("[data-image-lightbox-title]").textContent = safeTitle;
+  dialog.querySelector("[data-image-lightbox-original]").href = source;
+  image.src = source;
+  image.alt = safeTitle;
+  if (!dialog.open) dialog.showModal();
 }
 
 function renderLinks(links) {

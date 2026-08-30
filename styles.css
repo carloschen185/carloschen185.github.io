@@ -919,6 +919,126 @@ h3 {
   object-fit: contain;
 }
 
+.short-video-image-button {
+  position: relative;
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: #f8eee8;
+  color: #fff;
+  cursor: zoom-in;
+  overflow: hidden;
+}
+
+.short-video-image-button > span {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 999px;
+  padding: 5px 9px;
+  background: rgba(43, 32, 39, 0.76);
+  font-size: 0.78rem;
+  font-weight: 800;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.short-video-image-button:hover > span,
+.short-video-image-button:focus-visible > span {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.short-video-image-button:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+}
+
+.image-lightbox {
+  width: min(1180px, calc(100vw - 32px));
+  max-width: none;
+  height: min(860px, calc(100vh - 32px));
+  max-height: none;
+  border: 0;
+  border-radius: 16px;
+  padding: 0;
+  background: #21191e;
+  color: #fffaf5;
+  box-shadow: 0 24px 80px rgba(35, 22, 29, 0.42);
+  overflow: hidden;
+}
+
+.image-lightbox::backdrop {
+  background: rgba(28, 20, 25, 0.76);
+  backdrop-filter: blur(8px);
+}
+
+.image-lightbox-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100%;
+}
+
+.image-lightbox-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px 12px 18px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.image-lightbox-toolbar > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.image-lightbox-toolbar a,
+.image-lightbox-toolbar button {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 9px;
+  padding: 7px 11px;
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.image-lightbox-stage {
+  display: grid;
+  min-height: 0;
+  place-items: center;
+  padding: 12px;
+  overflow: auto;
+}
+
+.image-lightbox-stage img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+@media (max-width: 640px) {
+  .image-lightbox {
+    width: 100vw;
+    height: 100dvh;
+    border-radius: 0;
+  }
+
+  .image-lightbox-toolbar {
+    align-items: flex-start;
+  }
+}
+
 .short-video-load {
   position: absolute;
   left: 12px;
