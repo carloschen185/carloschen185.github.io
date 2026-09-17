@@ -3,7 +3,9 @@ const LEGACY_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const SECRET_KEYS = parseKeyMap(Deno.env.get("SUPABASE_SECRET_KEYS"));
 const PUBLISHABLE_KEYS = parseKeyMap(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS"));
 const ADMIN_KEY = SECRET_KEYS.default || LEGACY_SERVICE_KEY;
+const SITE_ORIGIN = "https://xn--7xvq1gou4a.xn--0iv.gay";
 const ALLOWED_ORIGINS = new Set([
+  SITE_ORIGIN,
   "https://carloschen185.github.io",
   "http://localhost:8000",
   "http://127.0.0.1:8000",
@@ -27,7 +29,7 @@ function parseKeyMap(value: string | undefined): Record<string, string> {
 function corsHeaders(req: Request): HeadersInit {
   const origin = req.headers.get("origin");
   return {
-    "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://carloschen185.github.io",
+    "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.has(origin) ? origin : SITE_ORIGIN,
     "Access-Control-Allow-Headers": "apikey, content-type, x-vault-session",
     "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
     "Access-Control-Max-Age": "86400",

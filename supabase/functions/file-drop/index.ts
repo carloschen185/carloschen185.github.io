@@ -4,12 +4,14 @@ const LEGACY_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const SECRET_KEYS = parseKeyMap(Deno.env.get("SUPABASE_SECRET_KEYS"));
 const PUBLISHABLE_KEYS = parseKeyMap(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS"));
 const ADMIN_KEY = SECRET_KEYS.default || LEGACY_SERVICE_KEY;
+const SITE_ORIGIN = "https://xn--7xvq1gou4a.xn--0iv.gay";
 const BUCKET = "file-drop";
 const MAX_FILE_BYTES = 50 * 1024 * 1024;
 const DELETE_SESSION_MS = 5 * 60 * 1000;
 const ATTEMPT_WINDOW_MS = 15 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 const ALLOWED_ORIGINS = new Set([
+  SITE_ORIGIN,
   "https://carloschen185.github.io",
   "http://localhost:8000",
   "http://127.0.0.1:8000",
@@ -27,7 +29,7 @@ function parseKeyMap(value: string | undefined): Record<string, string> {
 function corsHeaders(req: Request): HeadersInit {
   const origin = req.headers.get("origin");
   return {
-    "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://carloschen185.github.io",
+    "Access-Control-Allow-Origin": origin && ALLOWED_ORIGINS.has(origin) ? origin : SITE_ORIGIN,
     "Access-Control-Allow-Headers": "apikey, content-type, x-vault-session, x-delete-session, x-file-drop-admin",
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Max-Age": "86400",
