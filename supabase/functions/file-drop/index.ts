@@ -264,7 +264,6 @@ async function getFile(id: string): Promise<JsonObject | null> {
 
 async function signedDownload(file: JsonObject, download: boolean): Promise<string> {
   const body: JsonObject = { expiresIn: 60 };
-  if (download) body.download = String(file.original_name);
   const response = await storage(`object/sign/${BUCKET}/${encodeObjectPath(String(file.object_path))}`, {
     method: "POST",
     body: JSON.stringify(body),
@@ -273,7 +272,11 @@ async function signedDownload(file: JsonObject, download: boolean): Promise<stri
   const payload = await response.json();
   const value = String(payload.signedURL || payload.signedUrl || "");
   if (!value) throw new Error("临时访问地址格式不正确");
-  return new URL(value, SUPABASE_URL).toString();
+  const signedUrl = /^https?:\/\//i.test(value)
+    ? new URL(value)
+    : new URL(value.startsWith("/storage/v1/") ? value : `/storage/v1/${value.replace(/^\/+/, "")}`, SUPABASE_URL);
+  if (download) signedUrl.searchParams.set("download", String(file.original_name));
+  return signedUrl.toString();
 }
 
 async function fileAccess(req: Request, id: string, download: boolean): Promise<Response> {
